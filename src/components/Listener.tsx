@@ -1,73 +1,64 @@
 import React, { useState, useRef, useEffect, useContext } from "react";
-import { io } from "socket.io-client";
 import { PeerContext } from "./PeerContext";
+import Peer from "simple-peer";
 
 const Listener = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streaming, setStreaming] = useState<boolean>(false);
-  const [connected, setConnected] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [connected, setConnected] = useState<boolean>(false);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const peer = useContext(PeerContext);
 
   useEffect(() => {
-    socketInitializer();
-  }, []);
+    console.log("peer listener?", peer);
+    if (peer) {
+      setConnected(true);
 
-  const socketInitializer = async () => {
-    try {
-      console.log("Listening...");
-      await fetch("/api/socket");
-
-      const socket = io("/", {
-        transports: ["websocket", "polling", "flashsocket"],
+      peer.on("signal", (data) => {
+        console.log("Signal data:", data);
+        peer.signal(data);
       });
 
-      socket.on("connect", () => {
-        console.log("connected");
-        setConnected(true);
-        setLoading(false);
+      peer.on("connect", () => {
+        console.log("Connection established with the streamer");
       });
 
-      socket.on("disconnect", () => {
-        console.log("disconnected");
-        setConnected(false);
-        setLoading(false);
+      peer.on("stream", (stream) => {
+        console.log("Received stream from the streamer");
+        videoRef.current!.srcObject = stream;
+        videoRef.current!.play();
+        setStreaming(true);
       });
 
-      socket.on("video-data", (data: any) => {
-        console.log("Received video data: ", data);
+      peer.on("streamoff", () => {
+        console.log("Streamer stopped streaming");
+        videoRef.current!.srcObject = null;
+        setStreaming(false);
       });
 
-      if (connected) {
-        if (peer) {
-          peer.on("signal", (data) => {
-            console.log("Signal data:", data);
-            socket?.emit("signal", data);
-          });
+      peer.on("error", (err) => {
+        console.error("Peer error:", err);
+      });
+    }
 
-          peer.on("stream", (stream) => {
-            videoRef.current!.srcObject = stream;
-            videoRef.current!.play();
-            setStreaming(true);
-          });
-          peer.on("streamoff", () => {
-            videoRef.current!.srcObject = null;
-            setStreaming(false);
-          });
+    return () => {
+      if (peer) {
+        const [stream] = peer.streams;
+        if (stream) {
+          const [track] = stream.getTracks();
+          peer?.removeStream(stream);
+          track.stop();
         }
       }
-    } catch (error) {
-      console.log(error);
-    }
-  };
+    };
+  }, [peer]);
 
   return (
     <div className="h-screen flex items-center">
       {!streaming && <div>No Stream Available</div>}
       {streaming && (
         <div>
-          video should be here
           <video
             className=""
             style={{ width: "100%", height: "100%" }}
@@ -77,6 +68,7 @@ const Listener = () => {
           />
         </div>
       )}
+      {connected && <div>Connected to the streamer!</div>}
     </div>
   );
 };

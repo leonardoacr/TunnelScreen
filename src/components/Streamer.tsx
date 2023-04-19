@@ -1,92 +1,10 @@
-import React, { useState, useRef, useContext, useEffect } from "react";
-import { PeerContext } from "./PeerContext";
-import io from "socket.io-client";
-import type { Socket } from "socket.io-client";
-
-let socket: undefined | Socket;
+import React, { useState, useRef, useEffect } from "react";
+import SimplePeer from "simple-peer";
 
 const Streamer = () => {
-  const [videoData, setVideoData] = useState();
-  const [connected, setConnected] = useState(false);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    socketInitializer();
-  }, []);
-
-  const socketInitializer = async () => {
-    try {
-      console.log("Streaming");
-      await fetch("/api/socket");
-
-      const socket = io("/", {
-        transports: ["websocket", "polling", "flashsocket"],
-      });
-
-      socket.on("connect", () => {
-        console.log("connected");
-        setConnected(true);
-        setLoading(false);
-      });
-
-      socket.on("disconnect", () => {
-        console.log("disconnected");
-        setConnected(false);
-        setLoading(false);
-        clearInterval(interval);
-      });
-
-      const interval = setInterval(() => {
-        const randomNumber = Math.floor(Math.random() * 101);
-        console.log("Sending video data:", randomNumber);
-        socket.emit("video-data", randomNumber);
-      }, 3000);
-
-      socket.on("error", (error: any) => {
-        console.error("Socket error:", error);
-        setConnected(false);
-        setLoading(false);
-      });
-    } catch (error) {
-      console.log(error);
-      setLoading(false);
-    }
-  };
-
+  const [connected, setConnected] = useState(true);
   const videoRef = useRef<HTMLVideoElement>(null);
   const [sharing, setSharing] = useState<boolean>(false);
-  const peer = useContext(PeerContext);
-
-  useEffect(() => {
-    console.log("Status: ", connected);
-    if (connected) {
-      if (peer) {
-        peer.on("signal", (data) => {
-          console.log("Signal data:", data);
-          socket?.emit("signal", data); // emit the signal data to the listener
-        });
-
-        peer.on("connect", () => {
-          console.log("Connection established with the listener");
-        });
-
-        peer.on("stream", (stream) => {
-          console.log("Received stream from the listener");
-          videoRef.current!.srcObject = stream;
-          videoRef.current!.play();
-        });
-
-        peer.on("streamoff", () => {
-          console.log("Listener stopped streaming");
-          videoRef.current!.srcObject = null;
-        });
-
-        peer.on("error", (err) => {
-          console.error("Peer error:", err);
-        });
-      }
-    }
-  }, [connected, peer]);
 
   const startSharing = async () => {
     setSharing(true);
@@ -103,18 +21,19 @@ const Streamer = () => {
     videoRef.current!.srcObject = stream;
     videoRef.current!.play();
 
-    peer?.addStream(stream);
+    // initialize peer
+    const peer = new SimplePeer({ initiator: true, trickle: false });
+    peer.addStream(stream);
+
+    peer.on("signal", (data) => {
+      console.log("Signal data:", data);
+      // send signal data to listeners
+    });
   };
 
   const stopSharing = () => {
     setSharing(false);
-    if (peer) {
-      const [stream] = peer.streams;
-      if (stream) {
-        peer.removeStream(stream);
-        stream.getTracks().forEach((track) => track.stop());
-      }
-    }
+    // TODO: stop sharing and close peer connection
   };
 
   const handleFullScreen = () => {
