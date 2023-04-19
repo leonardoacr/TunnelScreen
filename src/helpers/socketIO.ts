@@ -1,5 +1,23 @@
-import io from "socket.io-client";
+import { io } from "socket.io-client";
 
-const socket = io("http://localhost:3000"); // replace with your server URL
+export const socketInitializer = async () => {
+    try {
+        try {
+            console.log('Connecting to SocketIO Server...')
+            await fetch("/api/socket");
+        } catch (error) {
+            console.log("error fetching the api: ", error);
+            return
+        }
 
-export default socket;
+        console.log('SocketIO Server connected...')
+
+        const socket = io("/", {
+            transports: ["websocket", "polling", "flashsocket"],
+        });
+
+        return socket;
+    } catch (error) {
+        console.log(error);
+    }
+};

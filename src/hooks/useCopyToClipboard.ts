@@ -11,7 +11,7 @@ export function useCopyToClipboard() {
                 await navigator.clipboard.writeText(text);
                 setResult({ state: 'success' });
             } else {
-                setResult({ state: 'error', message: 'Please enter text to copy' });
+                setResult({ state: 'error', message: 'Please generate an ID to copy' });
             }
         } catch (e: any) {
             setResult({ state: 'error', message: e.message });
