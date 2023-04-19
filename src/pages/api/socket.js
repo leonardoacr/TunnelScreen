@@ -2,24 +2,53 @@ import { Server } from 'socket.io';
 
 const io = new Server(); // create a single instance of Server
 
+const connections = {};
+
 const SocketHandler = (req, res) => {
-    console.log('Socket is initializing');
-    io.attach(res.socket.server); // attach the Server instance to the HTTP server
+    io.attach(res.socket.server);
 
-    io.on('connection', (socket) => {
-        console.log('Socket connected');
+    io.on("connection", (socket) => {
+        console.log("Socket connected");
 
-        socket.on("video-data", (data) => {
-            console.log("Signal data received from the client:", data);
-            socket.broadcast.emit("video-data", data); // emit to all clients except sender
-        });
+        socket.on("connect-listener", ({ streamerId, listenerId }) => {
+            if (connections[listenerId]) {
+                // If there is already a connection for this listener, close it before creating a new one
+                connections[listenerId].socket.disconnect();
+            }
 
-        socket.on('disconnect', () => {
-            console.log('Socket disconnected');
+            const listenerSocket = io.sockets.connected[listenerId];
+
+            if (listenerSocket) {
+                // If the listener socket exists, create a new connection
+                const connectionId = streamerId; // Use streamerId as the connection ID
+
+                connections[listenerId] = {
+                    id: connectionId,
+                    socket,
+                    streamerId,
+                };
+
+                listenerSocket.emit("listener-connected", {
+                    streamerId,
+                    connectionId,
+                });
+
+                socket.emit("streamer-id", connectionId); // Emit the streamer ID to the listener
+
+                socket.on("disconnect", () => {
+                    console.log(`Socket disconnected: ${socket.id}`);
+
+                    if (connections[listenerId]?.id === connectionId) {
+                        // If this connection is still the active one, remove it from the connections object
+                        delete connections[listenerId];
+                    }
+                });
+            } else {
+                // If the listener socket doesn't exist, emit an error event
+                socket.emit("listener-not-found", { listenerId });
+            }
         });
     });
-
-    res.end();
 };
 
 export default SocketHandler;

@@ -1,38 +1,22 @@
-import React, { useEffect, useState } from "react";
-import Streamer from "@/components/Streamer";
-import Listener from "@/components/Listener";
-import { io } from "socket.io-client";
+import Button from "@/components/Button";
+import Link from "next/link";
 
-const Home = () => {
-  const [streamMode, setStreamMode] = useState<string>();
-
-  const handleStreamerClick = () => {
-    setStreamMode("streamer");
-  };
-
-  const handleListenerClick = () => {
-    setStreamMode("listener");
-  };
-
+const HomePage = () => {
   return (
-    <div>
-      <h1>Home Page</h1>
-      <button
-        className="bg-red-800 mb-2 hover:bg-red-700  text-zinc-50  py-1.5 px-4 w-36 border border-gray-800 rounded shadow"
-        onClick={handleStreamerClick}
-      >
-        I want to stream
-      </button>
-      <button
-        className="bg-purple-800 mb-2 hover:bg-purple-700  text-zinc-50  py-1.5 px-4 w-36 border border-gray-800 rounded shadow"
-        onClick={handleListenerClick}
-      >
-        I want to listen
-      </button>
-      {streamMode === "streamer" ? <Streamer /> : null}
-      {streamMode === "listener" ? <Listener /> : null}
+    <div className="w-full items-center justify-center h-screen flex">
+      <div className="block">
+        <h1>TunnelScreen!</h1>
+        <div>
+          <Link href="/streamer">
+            <Button backgroundColor="red" borderColor="gray" text="Stream" />
+          </Link>
+          <Link href="/listener">
+            <Button backgroundColor="purple" borderColor="gray" text="Watch" />
+          </Link>
+        </div>
+      </div>
     </div>
   );
 };
 
-export default Home;
+export default HomePage;

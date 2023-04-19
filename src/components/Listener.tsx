@@ -1,74 +1,107 @@
-import React, { useState, useRef, useEffect, useContext } from "react";
-import { PeerContext } from "./PeerContext";
+import React, { useState, useRef, useEffect } from "react";
 import Peer from "simple-peer";
+import io from "socket.io-client";
 
 const Listener = () => {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [streaming, setStreaming] = useState<boolean>(false);
   const [connected, setConnected] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
-
-  const peer = useContext(PeerContext);
+  const peerRef = useRef<Peer.Instance | null>(null);
+  const [socket, setSocket] = useState<any>(null);
 
   useEffect(() => {
-    console.log("peer listener?", peer);
-    if (peer) {
-      setConnected(true);
+    socketInitializer();
+  }, [socket]);
 
+  const socketInitializer = async () => {
+    try {
+      try {
+        await fetch("/api/socket");
+      } catch (error) {
+        console.log("error fetching the api: ", error);
+      }
+
+      const socket = io("/", {
+        transports: ["websocket", "polling", "flashsocket"],
+      });
+
+      setSocket(socket);
+
+      // connect to the streamer with the id he sent
+      // const listenerId = prompt("Enter listener ID:");
+      // if (listenerId) {
+      //   socket?.emit("connect-listener", { streamerId, listenerId });
+      // }
+
+      socket.on("connect", () => {
+        // console.log("Connected to server");
+        setConnected(true);
+      });
+
+      socket.on("disconnect", () => {
+        console.log("Disconnected from server");
+        setConnected(false);
+      });
+
+      socket.on("video-data", (data) => {
+        // console.log("Signal data received from server:", data);
+        peerRef.current?.signal(data);
+      });
+
+      // create new Peer instance with options
+      const peer = new Peer({
+        initiator: false,
+        trickle: false,
+      });
+
+      // set peer instance to state
+      peerRef.current = peer;
+
+      // listen for signal data
       peer.on("signal", (data) => {
-        console.log("Signal data:", data);
-        peer.signal(data);
+        // console.log("Signal data:", data);
+        socket?.emit("video-data", data);
       });
 
-      peer.on("connect", () => {
-        console.log("Connection established with the streamer");
-      });
-
+      // listen for stream from the streamer
       peer.on("stream", (stream) => {
-        console.log("Received stream from the streamer");
+        // console.log("Stream received");
+        setStreaming(true);
+        setLoading(false);
         videoRef.current!.srcObject = stream;
         videoRef.current!.play();
-        setStreaming(true);
       });
 
-      peer.on("streamoff", () => {
-        console.log("Streamer stopped streaming");
-        videoRef.current!.srcObject = null;
-        setStreaming(false);
-      });
-
-      peer.on("error", (err) => {
-        console.error("Peer error:", err);
-      });
+      return () => {
+        // destroy the Peer instance and reset the state
+        // peerRef.current?.destroy();
+        // peerRef.current = null;
+        // setStreaming(false);
+        // setLoading(true);
+        // socket.disconnect();
+      };
+    } catch (error) {
+      // console.log(error);
     }
-
-    return () => {
-      if (peer) {
-        const [stream] = peer.streams;
-        if (stream) {
-          const [track] = stream.getTracks();
-          peer?.removeStream(stream);
-          track.stop();
-        }
-      }
-    };
-  }, [peer]);
+  };
 
   return (
     <div className="h-screen flex items-center">
-      {!streaming && <div>No Stream Available</div>}
+      {!loading && !streaming && <div>No Stream Available</div>}
       {streaming && (
         <div>
           <video
             className=""
-            style={{ width: "100%", height: "100%" }}
+            width="720"
+            height="576"
             ref={videoRef}
             muted
             autoPlay
           />
         </div>
       )}
-      {connected && <div>Connected to the streamer!</div>}
+      {connected && <div>Connected to the server!</div>}
     </div>
   );
 };
