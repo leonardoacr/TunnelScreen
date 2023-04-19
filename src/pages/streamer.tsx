@@ -9,7 +9,7 @@ import { v4 as uuidv4 } from "uuid";
 const Streamer = () => {
  const [isPeerConnected, setPeerConnected] = useState(false);
  const [isServerConnected, setIsServerConnected] = useState(false);
- const [stream, setStream] = useState<MediaStream | null>(null);
+ const [stream, setStream] = useState<MediaStream>();
  const videoRef = useRef<HTMLVideoElement>(null);
  const peerRef = useRef<Peer.Instance | null>(null);
  const [streamerId, setStreamerId] = useState<string>("");
@@ -40,23 +40,57 @@ const Streamer = () => {
   initSocket();
  }, []);
 
- const createPeerInstance = (stream: MediaStream) => {
-  // create new Peer instance with options
-  const peer = new Peer({
-   initiator: true,
-   trickle: false,
-   stream,
-  });
+ const handleConnect = () => {
+  try {
+   const peer = new Peer({
+    initiator: true,
+    trickle: false,
+    stream,
+   });
 
-  // set peer instance to state
-  peerRef.current = peer;
+   peerRef.current = peer;
 
-  // Peer stuff
+   peer.on("signal", (data) => {
+    socket?.emit("connect-streamer", { streamerId, signalData: data });
+   });
+
+   type RTCSessionDescriptionInitWithSdpType = RTCSessionDescriptionInit & {
+    type: "offer" | "answer";
+   };
+
+   socket?.on(
+    "streamer-signal",
+    (signalData: string | RTCSessionDescriptionInitWithSdpType) => {
+     if (typeof signalData === "string") {
+     } else {
+      peer.signal(signalData);
+     }
+    }
+   );
+
+   peer.on("connect", () => {
+    setIsLoading(false);
+    setPeerConnected(true);
+   });
+
+   peer.on("error", (err) => {
+    console.log("Error connecting peer: ", err);
+   });
+  } catch (error) {
+   console.log("Error creating peer: ", error);
+  }
+
+  setIsLoading(true);
+
+  // simulate the loading time as 3 seconds and then, setPeerConnected(true)
+  //   setTimeout(() => {
+  //    setIsLoading(false);
+  //   }, 3000);
+  //  };
  };
 
  const updateStream = (stream: MediaStream | null) => {
-  setStream(stream);
-  if (stream) createPeerInstance(stream);
+  if (stream) setStream(stream);
  };
 
  const closeStream = () => {
@@ -70,25 +104,6 @@ const Streamer = () => {
 
  const generateID = () => {
   setStreamerId(uuidv4().slice(0, 16));
- };
-
- const handleConnect = () => {
-  // here will go the streammer code to send the id to the server:
-  // socket?.emit("connect-streamer", { streamerId });
-  // waiting peer to connect
-  setIsLoading(true);
-
-  // simulate the loading time as 3 seconds and then, setPeerConnected(true)
-  setTimeout(() => {
-   setIsLoading(false);
-   setPeerConnected(true);
-  }, 3000);
-
-  // set isPeerConnected when the peer connected to the ID
-  // peerRef.current.on("connected", () => {
-  //   setIsLoading(false);
-  //   setIsPeerConnected(true);
-  // }
  };
 
  return (
