@@ -1,6 +1,6 @@
 import IdContainer from "@/components/Streamer/IdContainer";
 import ScreenSharingContainer from "@/components/Streamer/ScreenSharingContainer";
-import { socketInitializer } from "@/helpers/socketIO";
+import useSocket from "@/hooks/useSocket";
 import { useRouter } from "next/router";
 import React, { useState, useRef, useEffect } from "react";
 import Peer from "simple-peer";
@@ -8,37 +8,15 @@ import { v4 as uuidv4 } from "uuid";
 
 const Streamer = () => {
  const [isPeerConnected, setPeerConnected] = useState(false);
- const [isServerConnected, setIsServerConnected] = useState(false);
  const [stream, setStream] = useState<MediaStream>();
  const videoRef = useRef<HTMLVideoElement>(null);
  const peerRef = useRef<Peer.Instance | null>(null);
  const [streamerId, setStreamerId] = useState<string>("");
  const [isLoading, setIsLoading] = useState<boolean>(false);
- const [socket, setSocket] = useState<any>();
+ const { socket, isServerConnected } = useSocket();
+ const [streamerReady, setStreamerReady] = useState<boolean>(false);
 
  const router = useRouter();
-
- useEffect(() => {
-  const initSocket = async () => {
-   const socket = await socketInitializer();
-
-   if (!socket) {
-    console.log("Failed to initialize socket");
-    return;
-   }
-   setSocket(socket);
-
-   socket.on("connect", () => {
-    setIsServerConnected(true);
-   });
-   socket.on("disconnect", () => {
-    console.log("Disconnected from server");
-    setIsServerConnected(false);
-   });
-  };
-
-  initSocket();
- }, []);
 
  const handleConnect = () => {
   try {
@@ -50,25 +28,22 @@ const Streamer = () => {
 
    peerRef.current = peer;
 
-   peer.on("signal", (data) => {
-    socket?.emit("connect-streamer", { streamerId, signalData: data });
+   peer.on("signal", (signalData: Peer.SignalData) => {
+    console.log("Streamer signal sended...");
+    socket?.emit("streamer-ready", { streamerId, signalData: signalData });
+    setStreamerReady(true);
    });
 
-   type RTCSessionDescriptionInitWithSdpType = RTCSessionDescriptionInit & {
-    type: "offer" | "answer";
-   };
-
-   socket?.on(
-    "streamer-signal",
-    (signalData: string | RTCSessionDescriptionInitWithSdpType) => {
-     if (typeof signalData === "string") {
-     } else {
-      peer.signal(signalData);
-     }
+   socket.on("listener-answer", (data: any) => {
+    console.log("Streamer received Listener signal data:", data.signalData);
+    if (data) {
+     console.log("type of the listener signal received: ", typeof data);
+     peer.signal(data.signalData);
     }
-   );
+   });
 
    peer.on("connect", () => {
+    console.log("Peer connected!");
     setIsLoading(false);
     setPeerConnected(true);
    });
@@ -81,16 +56,14 @@ const Streamer = () => {
   }
 
   setIsLoading(true);
-
-  // simulate the loading time as 3 seconds and then, setPeerConnected(true)
-  //   setTimeout(() => {
-  //    setIsLoading(false);
-  //   }, 3000);
-  //  };
  };
 
  const updateStream = (stream: MediaStream | null) => {
-  if (stream) setStream(stream);
+  if (stream) {
+   console.log("Streaming...");
+   console.log(stream);
+   setStream(stream);
+  }
  };
 
  const closeStream = () => {
