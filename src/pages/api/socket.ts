@@ -65,7 +65,12 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
             socket.on('listener-signal', (signalData: SignalData) => {
                 console.log("Answer from the listener", signalData);
                 socket.broadcast.emit('listener-answer', signalData)
-            })
+            });
+
+            socket.on("streamer-transmitting", async (streamData: any) => {
+                console.log("Streamer started transmitting...", streamData);
+                socket.broadcast.emit('streamer-started-transmitting', streamData)
+            });
 
             socket.on('disconnect', () => {
                 console.log('Socket disconnected');

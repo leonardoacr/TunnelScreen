@@ -20,7 +20,43 @@ const Streamer = () => {
 
  useEffect(() => {
   console.log("checking stream state: ", stream);
- }, [stream]);
+  if (stream && peerRef.current) {
+   addStreamToPeer(stream)
+    .then(() => {
+     console.log("Stream added to peer object successfully.");
+
+     console.log(
+      "Streams in peer object after adding: ",
+      peerRef.current?.streams
+     );
+
+     const streamData = {
+      id: stream.id,
+      trackIds: stream.getTracks().map((track) => track.id),
+     };
+     socket?.emit("streamer-transmitting", { streamData: streamData });
+     console.log("Stream flag sended to socket server...");
+    })
+    .catch((err) => {
+     console.error("Error adding stream to peer object:", err);
+    });
+  }
+ }, [socket, stream]);
+
+ const addStreamToPeer = (stream: MediaStream) => {
+  return new Promise<void>((resolve, reject) => {
+   try {
+    // stream.getTracks().forEach((track) => {
+    //  peerRef.current?.addTrack(track, stream);
+    // });
+    peerRef.current?.addStream(stream);
+    resolve();
+   } catch (error) {
+    console.error("Error adding stream to peer object:", error);
+    reject(error);
+   }
+  });
+ };
 
  const handleConnect = () => {
   try {
@@ -42,6 +78,7 @@ const Streamer = () => {
     console.log("Streamer received Listener signal data:", data.signalData);
     if (data) {
      console.log("type of the listener signal received: ", typeof data);
+     //  setListenerAnswer(data.signalData)
      peer.signal(data.signalData);
     }
    });
@@ -65,7 +102,6 @@ const Streamer = () => {
  const updateStream = (stream: MediaStream | null) => {
   if (stream) {
    console.log("Streaming...");
-   //  console.log(stream);
    setStream(stream);
   }
  };

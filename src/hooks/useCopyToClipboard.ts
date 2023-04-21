@@ -17,9 +17,9 @@ export function useCopyToClipboard() {
             setResult({ state: 'error', message: e.message });
             throw e;
         } finally {
-            setTimeout(() => {
-                setResult(null);
-            }, 6000);
+            // setTimeout(() => {
+            //     setResult(null);
+            // }, 6000);
         }
     };
 

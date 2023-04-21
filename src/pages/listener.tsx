@@ -1,7 +1,7 @@
 import IdContainer from "@/components/Listener/IdContainer";
 import useSocket from "@/hooks/useSocket";
 import Peer from "simple-peer";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Video from "@/components/Video";
 
 const Listener = () => {
@@ -9,8 +9,35 @@ const Listener = () => {
  const [isPeerConnected, setPeerConnected] = useState(false);
  const [streamId, setStreamId] = useState<string>("");
  const [isLoading, setIsLoading] = useState<boolean>(false);
+ const [streamingData, setStreamingData] = useState<MediaStream | null>(null);
  const videoRef = useRef<HTMLVideoElement | null>(null);
  const peerRef = useRef<Peer.Instance | null>(null);
+
+ useEffect(() => {
+  socket?.on("streamer-started-transmitting", (data: any) => {
+   const { streamData } = data;
+   console.log("Listener received stream data:", streamData);
+
+   if (peerRef.current) {
+    const stream = new MediaStream();
+    const remoteStream = peerRef.current.streams.find(
+     (s) => s.id === streamData.id
+    );
+    if (remoteStream) {
+     stream.addTrack(
+      remoteStream.getTracks().find((t) => t.id === streamData.trackIds[0])!
+     );
+    }
+
+    console.log("Listener received stream:", stream);
+    if (videoRef.current) {
+     videoRef.current.srcObject = stream;
+    } else {
+     console.log("Video element not found");
+    }
+   }
+  });
+ }, [socket]);
 
  const getStreamId = (streamId: string) => {
   setStreamId(streamId);
@@ -45,13 +72,6 @@ const Listener = () => {
     setIsLoading(false);
     setPeerConnected(true);
     console.log("PEER CONNECTED");
-   });
-
-   peer.on("stream", (stream) => {
-    console.log("Receving stream video...");
-    if (videoRef.current) {
-     videoRef.current.srcObject = stream;
-    }
    });
 
    peer.on("error", (err) => {
