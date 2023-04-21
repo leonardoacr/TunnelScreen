@@ -48,6 +48,7 @@ const Listener = () => {
    });
 
    peer.on("stream", (stream) => {
+    console.log("Receving stream video...");
     if (videoRef.current) {
      videoRef.current.srcObject = stream;
     }

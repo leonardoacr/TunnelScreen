@@ -18,6 +18,10 @@ const Streamer = () => {
 
  const router = useRouter();
 
+ useEffect(() => {
+  console.log("checking stream state: ", stream);
+ }, [stream]);
+
  const handleConnect = () => {
   try {
    const peer = new Peer({
@@ -61,7 +65,7 @@ const Streamer = () => {
  const updateStream = (stream: MediaStream | null) => {
   if (stream) {
    console.log("Streaming...");
-   console.log(stream);
+   //  console.log(stream);
    setStream(stream);
   }
  };
