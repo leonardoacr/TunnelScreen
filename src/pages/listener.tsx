@@ -1,7 +1,8 @@
-import IdContainer from "@/components/Listener/IdContainer";
-import useSocket from "@/hooks/useSocket";
-import Peer from "simple-peer";
 import { useEffect, useRef, useState } from "react";
+import Peer from "simple-peer";
+
+import useSocket from "@/hooks/useSocket";
+import IdContainer from "@/components/Listener/IdContainer";
 import Video from "@/components/Video";
 
 const Listener = () => {
@@ -13,12 +14,6 @@ const Listener = () => {
  const [streamingData, setStreamingData] = useState<MediaStream | null>(null);
  const videoRef = useRef<HTMLVideoElement | null>(null);
  const peerRef = useRef<Peer.Instance | null>(null);
-
- useEffect(() => {
-  if (videoRef.current && streamingData) {
-   videoRef.current.srcObject = streamingData;
-  }
- }, [videoRef, streamingData]);
 
  const getStreamId = (streamId: string) => {
   setStreamId(streamId);
@@ -40,7 +35,15 @@ const Listener = () => {
   });
  };
 
- if (isIdConnected) {
+ useEffect(() => {
+  if (videoRef.current && streamingData) {
+   videoRef.current.srcObject = streamingData;
+  }
+ }, [videoRef, streamingData]);
+
+ useEffect(() => {
+  if (!isIdConnected) return;
+
   const peer = new Peer({
    initiator: false,
    trickle: false,
@@ -73,12 +76,12 @@ const Listener = () => {
   peer.on("connect", () => {
    setIsLoading(false);
    setPeerConnected(true);
-   console.log("PEER CONNECTED");
+   console.log("Peer Connected");
   });
   peer.on("error", (err) => {
    console.log("Error connecting peer: ", err);
   });
- }
+ }, [socket, isIdConnected, streamId]);
 
  return (
   <div className="w-full items-center justify-center h-screen flex">
@@ -99,6 +102,7 @@ const Listener = () => {
    ) : (
     <div className="block">
      <h1>The server is not connected.</h1>
+     {!isPeerConnected && <h1>The Peer is not connected.</h1>}
     </div>
    )}
   </div>
