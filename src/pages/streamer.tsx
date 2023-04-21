@@ -1,5 +1,6 @@
 import IdContainer from "@/components/Streamer/IdContainer";
 import ScreenSharingContainer from "@/components/Streamer/ScreenSharingContainer";
+import { WaitingConnections } from "@/components/WaitingConnections";
 import useSocket from "@/hooks/useSocket";
 import { useRouter } from "next/router";
 import React, { useState, useRef, useEffect } from "react";
@@ -12,56 +13,17 @@ const Streamer = () => {
  const [stream, setStream] = useState<MediaStream>();
  const videoRef = useRef<HTMLVideoElement>(null);
  const peerRef = useRef<Peer.Instance | null>(null);
- const [streamerId, setStreamerId] = useState<string>("");
+ const [streamId, setStreamId] = useState<string>("");
+ const [isSharing, setIsSharing] = useState<boolean>(false);
  const [isLoading, setIsLoading] = useState<boolean>(false);
  const { socket, isServerConnected } = useSocket();
  const [streamerReady, setStreamerReady] = useState<boolean>(false);
 
  const router = useRouter();
 
- useEffect(() => {
-  console.log("checking stream state: ", stream);
-  if (stream && peerRef.current) {
-   addStreamToPeer(stream)
-    .then(() => {
-     console.log("Stream added to peer object successfully.");
-
-     console.log(
-      "Streams in peer object after adding: ",
-      peerRef.current?.streams
-     );
-
-     const streamData = {
-      id: stream.id,
-      trackIds: stream.getTracks().map((track) => track.id),
-     };
-     socket?.emit("streamer-transmitting", { streamData: streamData });
-     console.log("Stream flag sended to socket server...");
-    })
-    .catch((err) => {
-     console.error("Error adding stream to peer object:", err);
-    });
-  }
- }, [socket, stream]);
-
- const addStreamToPeer = (stream: MediaStream) => {
-  return new Promise<void>((resolve, reject) => {
-   try {
-    // stream.getTracks().forEach((track) => {
-    //  peerRef.current?.addTrack(track, stream);
-    // });
-    peerRef.current?.addStream(stream);
-    resolve();
-   } catch (error) {
-    console.error("Error adding stream to peer object:", error);
-    reject(error);
-   }
-  });
- };
-
  const handleConnect = () => {
   // Sending the id to the server with socket and wait for someone to connect
-  socket?.emit("streamer-ready", { streamerId });
+  socket?.emit("streamer-ready", { streamId });
   setStreamerReady(true);
   setIsLoading(true);
 
@@ -77,6 +39,8 @@ const Streamer = () => {
  const updateStream = (stream: MediaStream | null) => {
   if (stream) {
    setIsLoading(true);
+   setIsSharing(true);
+   setStream(stream);
 
    const peer = new Peer({
     initiator: true,
@@ -86,10 +50,33 @@ const Streamer = () => {
 
    peerRef.current = peer;
 
-   peer.on("signal", (signalData: Peer.SignalData) => {
-    console.log("Streamer signal sended...");
-    socket?.emit("streamer-signal", { streamerId, signalData: signalData });
+   peer.on("signal", (offer: Peer.SignalData) => {
+    console.log("Streamer offer sended...", {
+     streamId,
+     signalData: offer,
+    });
+    socket.emit("streamer-signal", { streamId, signalData: offer });
     setStreamerReady(true);
+   });
+
+   socket.on("listener-answer", (data: any) => {
+    if (data.streamId === streamId) {
+     const answer = data.signalData;
+     console.log("Streamer received Listener answer:", answer);
+     if (answer) {
+      peer.signal(answer);
+     }
+    }
+   });
+
+   peer.on("connect", () => {
+    console.log("Peer connected!");
+    setIsLoading(false);
+    setPeerConnected(true);
+   });
+
+   peer.on("error", (err) => {
+    console.log("Error connecting peer: ", err);
    });
   }
  };
@@ -104,28 +91,41 @@ const Streamer = () => {
  };
 
  const generateID = () => {
-  setStreamerId(uuidv4().slice(0, 16));
+  setStreamId(uuidv4().slice(0, 16));
  };
 
  return (
   <div className="w-full items-center justify-center h-screen flex">
    {isServerConnected ? (
-    <div className="block">
-     {!isIdConnected ? (
-      <IdContainer
-       streamerId={streamerId}
-       generateID={generateID}
-       handleConnect={handleConnect}
-       isLoading={isLoading}
-      />
-     ) : (
-      <ScreenSharingContainer
-       videoRef={videoRef}
-       closeStream={closeStream}
-       updateStream={(stream) => updateStream(stream)}
-      />
-     )}
-    </div>
+    <>
+     <div className="block">
+      {!isIdConnected ? (
+       <IdContainer
+        streamId={streamId}
+        generateID={generateID}
+        handleConnect={handleConnect}
+        isLoading={isLoading}
+       />
+      ) : (
+       <ScreenSharingContainer
+        videoRef={videoRef}
+        closeStream={closeStream}
+        updateStream={(stream) => updateStream(stream)}
+       />
+      )}
+      <div>
+       {isSharing ? (
+        isLoading ? (
+         <div>
+          <WaitingConnections />
+         </div>
+        ) : (
+         <div>Listener Connected.</div>
+        )
+       ) : null}
+      </div>
+     </div>
+    </>
    ) : (
     <div className="block">
      <h1>The server is not connected.</h1>

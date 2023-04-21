@@ -2,16 +2,17 @@ import React, { FC } from "react";
 import Button from "../Button";
 import { Copy, Wifi } from "lucide-react";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
+import { WaitingConnections } from "../WaitingConnections";
 
 interface iDContainerProps {
- streamerId: string;
+ streamId: string;
  generateID: () => void;
  handleConnect: () => void;
  isLoading: boolean;
 }
 
 const IdContainer: FC<iDContainerProps> = ({
- streamerId,
+ streamId,
  generateID,
  handleConnect,
  isLoading,
@@ -19,7 +20,7 @@ const IdContainer: FC<iDContainerProps> = ({
  const [copyToClipboard, copyResult] = useCopyToClipboard();
 
  const handleCopy = () => {
-  copyToClipboard(streamerId);
+  copyToClipboard(streamId);
  };
 
  return (
@@ -35,7 +36,7 @@ const IdContainer: FC<iDContainerProps> = ({
        type="text"
        id="generate-stream-id"
        name="Name"
-       value={streamerId}
+       value={streamId}
        readOnly
       />
       <button onClick={handleCopy}>
@@ -49,7 +50,7 @@ const IdContainer: FC<iDContainerProps> = ({
     </div>
     <div>
      <label htmlFor="generate-stream-id">
-      {!streamerId ? (
+      {!streamId ? (
        <Button
         backgroundColor="gray"
         borderColor="gray"
@@ -66,16 +67,7 @@ const IdContainer: FC<iDContainerProps> = ({
       )}
      </label>
     </div>
-    <div className="flex items-center w-full justify-center text-center space-x-2 mt-4">
-     {!isLoading ? null : (
-      <>
-       <div className="font-bold text-zinc-300">Waiting for connections</div>
-       <div className="flex items-center animate-pulse">
-        <Wifi className="text-sky-900" />
-       </div>
-      </>
-     )}
-    </div>
+    {!isLoading ? null : <WaitingConnections />}
    </div>
   </div>
  );

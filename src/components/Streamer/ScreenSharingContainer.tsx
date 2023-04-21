@@ -12,7 +12,7 @@ export const videoOptions = {
  video: {
   width: { ideal: 1920 },
   height: { ideal: 1080 },
-  frameRate: { ideal: 30 },
+  frameRate: { ideal: 60 },
  },
  audio: true,
 };
@@ -23,15 +23,6 @@ const ScreenSharingContainer = ({
  updateStream,
 }: ScreenSharingContainerProps) => {
  const [stream, setStream] = useState<MediaStream | null>(null);
-
- const handleFullScreen = () => {
-  const video = videoRef.current!;
-  if (video.requestFullscreen) {
-   video.requestFullscreen();
-  } else {
-   console.error("Fullscreen API is not supported on this browser");
-  }
- };
 
  const startSharing = async () => {
   await navigator.mediaDevices
@@ -62,24 +53,22 @@ const ScreenSharingContainer = ({
   <>
    <Video videoRef={videoRef} />
    <div className="pt-4 space-x-4 w-full text-center">
-    <Button
-     backgroundColor="sky"
-     borderColor="gray"
-     text="Start Sharing"
-     onClick={startSharing}
-    />
-    <Button
-     backgroundColor="red"
-     borderColor="gray"
-     text="Stop Sharing"
-     onClick={stopSharing}
-    />
-    <Button
-     backgroundColor="gray"
-     borderColor="gray"
-     text="Full Screen"
-     onClick={handleFullScreen}
-    />
+    {!stream ? (
+     <Button
+      backgroundColor="sky"
+      borderColor="gray"
+      text="Start Sharing"
+      onClick={startSharing}
+     />
+    ) : (
+     <Button
+      backgroundColor="red"
+      borderColor="gray"
+      text="Stop Sharing"
+      onClick={stopSharing}
+     />
+    )}
+
     <Button
      backgroundColor="gray"
      borderColor="gray"

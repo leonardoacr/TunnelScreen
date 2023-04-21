@@ -14,11 +14,19 @@ const Listener = () => {
  const videoRef = useRef<HTMLVideoElement | null>(null);
  const peerRef = useRef<Peer.Instance | null>(null);
 
+ useEffect(() => {
+  if (videoRef.current && streamingData) {
+   videoRef.current.srcObject = streamingData;
+  }
+ }, [videoRef, streamingData]);
+
  const getStreamId = (streamId: string) => {
   setStreamId(streamId);
  };
 
  const handleConnect = () => {
+  setIsLoading(true);
+
   console.log("Listener ready...");
 
   socket?.emit("listener-ready", { streamId });
@@ -30,29 +38,47 @@ const Listener = () => {
     setIsIdConnected(true);
    }
   });
+ };
 
-  socket.on("streamer-signal", (data: Peer.SignalData) => {
-   console.log("Listener received Streamer signal data:", data);
-   if (data) {
-    peer.signal(data);
+ if (isIdConnected) {
+  const peer = new Peer({
+   initiator: false,
+   trickle: false,
+  });
+  peerRef.current = peer;
+
+  socket.on("streamer-offer", (data: any) => {
+   if (data.streamId === streamId) {
+    const offer = data.signalData;
+    console.log("Listener received Streamer offer:", offer);
+    if (offer) {
+     peer.signal(offer);
+    }
    }
   });
 
-  //    peer.on("signal", (signalData: Peer.SignalData) => {
-  //     console.log("Listener sending signal data:", signalData);
-  //     socket?.emit("listener-signal", { signalData });
-  //    });
+  peer.on("signal", (answer: Peer.SignalData) => {
+   console.log("Listener answer sended...", {
+    streamId,
+    signalData: answer,
+   });
+   socket?.emit("listener-signal", { streamId, signalData: answer });
+  });
 
-  //    peer.on("connect", () => {
-  //     setIsLoading(false);
-  //     setPeerConnected(true);
-  //     console.log("PEER CONNECTED");
-  //    });
+  peer.on("stream", (stream) => {
+   console.log("Listener stream created...", stream);
+   setStreamingData(stream);
+  });
 
-  //    peer.on("error", (err) => {
-  //     console.log("Error connecting peer: ", err);
-  //    });
- };
+  peer.on("connect", () => {
+   setIsLoading(false);
+   setPeerConnected(true);
+   console.log("PEER CONNECTED");
+  });
+  peer.on("error", (err) => {
+   console.log("Error connecting peer: ", err);
+  });
+ }
 
  return (
   <div className="w-full items-center justify-center h-screen flex">
