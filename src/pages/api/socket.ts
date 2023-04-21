@@ -31,46 +31,33 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
         io.on("connection", (socket) => {
             console.log("Socket connected");
 
-            socket.on("streamer-ready", (streamId: StreamId, signalData: Peer.SignalData) => {
-                connections.push({ streamId, signalData });
+            // Receiving the id from the streamer
+            socket.on("streamer-ready", (streamId: StreamId) => {
+                connections.push({ streamId });
                 console.log(`Streamer ${JSON.stringify(streamId.streamerId)} is ready`);
             });
 
             socket.on("listener-ready", async (streamId) => {
                 console.log(`Listener for stream ${JSON.stringify(streamId.streamerId)} is ready`);
 
-                async function findConnection(streamId: any) {
-                    return new Promise(resolve => {
-                        const connection = connections.find(conn => conn.streamId.streamerId === streamId.streamId);
-                        resolve(connection);
-                    });
-                }
-
-                async function sendSignalDataToListener(streamId: any) {
-                    const connection: any = await findConnection(streamId);
-                    if (!connection) {
-                        console.log(`No streamer found for stream ID ${JSON.stringify(streamId)}`);
-                        return;
-                    } else {
-                        console.log(`Streamer found for stream ID ${JSON.stringify(streamId)}`);
-                        // console.log(`Signal data received from Streamer: ${JSON.stringify(connection.streamId.signalData)}`)
-                        socket.emit('streamer-signal', connection.streamId.signalData)
-                        return;
-                    }
-                }
-
-                await sendSignalDataToListener(streamId)
+                await sendSignalDataToListener(streamId, socket)
             });
 
-            socket.on('listener-signal', (signalData: SignalData) => {
-                console.log("Answer from the listener", signalData);
-                socket.broadcast.emit('listener-answer', signalData)
+            socket.on('streamer-signal', (streamId: StreamId, signalData: SignalData) => {
+                console.log("Offer from the streamer (ID, OFFER)", streamId, ' ', signalData);
+                socket.emit('streamer-offer', { streamId, signalData })
             });
 
-            socket.on("streamer-transmitting", async (streamData: any) => {
-                console.log("Streamer started transmitting...", streamData);
-                socket.broadcast.emit('streamer-started-transmitting', streamData)
-            });
+
+            // socket.on('listener-signal', (signalData: SignalData) => {
+            //     console.log("Answer from the listener", signalData);
+            //     socket.broadcast.emit('listener-answer', signalData)
+            // });
+
+            // socket.on("streamer-transmitting", async (streamData: any) => {
+            //     console.log("Streamer started transmitting...", streamData);
+            //     socket.broadcast.emit('streamer-started-transmitting', streamData)
+            // });
 
             socket.on('disconnect', () => {
                 console.log('Socket disconnected');
@@ -82,3 +69,23 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
 };
 
 export default SocketHandler;
+
+
+async function findConnection(streamId: any) {
+    return new Promise(resolve => {
+        const connection = connections.find(conn => conn.streamId.streamerId === streamId.streamId);
+        resolve(connection);
+    });
+}
+
+async function sendSignalDataToListener(streamId: any, socket: any) {
+    const connection: any = await findConnection(streamId);
+    if (!connection) {
+        console.log(`No streamer found for stream ID ${JSON.stringify(streamId)}`);
+        return;
+    } else {
+        console.log(`Streamer found for stream ID ${JSON.stringify(streamId)}`);
+        socket.broadcast.emit('id-connection-stablished', true)
+        return;
+    }
+}

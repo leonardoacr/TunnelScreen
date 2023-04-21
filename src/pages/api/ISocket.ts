@@ -22,5 +22,5 @@ export interface StreamId {
 
 export interface Connection {
     streamId: StreamId;
-    signalData: Peer.SignalData;
+    // signalData: Peer.SignalData | undefined;
 }

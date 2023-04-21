@@ -8,7 +8,6 @@ import { v4 as uuidv4 } from "uuid";
 
 const Streamer = () => {
  const [isPeerConnected, setPeerConnected] = useState(false);
- const [isIdConnected, setIsIdConnected] = useState<boolean>(false);
  const [stream, setStream] = useState<MediaStream>();
  const videoRef = useRef<HTMLVideoElement>(null);
  const peerRef = useRef<Peer.Instance | null>(null);
@@ -60,24 +59,7 @@ const Streamer = () => {
  };
 
  const handleConnect = () => {
-  // Sending the id to the server with socket and wait for someone to connect
-  socket?.emit("streamer-ready", { streamerId });
-  setStreamerReady(true);
-  setIsLoading(true);
-
-  socket.on("id-connection-stablished", (data: boolean) => {
-   if (data) {
-    console.log("ID connection established");
-    setIsLoading(false);
-    setIsIdConnected(true);
-   }
-  });
- };
-
- const updateStream = (stream: MediaStream | null) => {
-  if (stream) {
-   setIsLoading(true);
-
+  try {
    const peer = new Peer({
     initiator: true,
     trickle: false,
@@ -88,9 +70,39 @@ const Streamer = () => {
 
    peer.on("signal", (signalData: Peer.SignalData) => {
     console.log("Streamer signal sended...");
-    socket?.emit("streamer-signal", { streamerId, signalData: signalData });
+    socket?.emit("streamer-ready", { streamerId, signalData: signalData });
     setStreamerReady(true);
    });
+
+   socket.on("listener-answer", (data: any) => {
+    console.log("Streamer received Listener signal data:", data.signalData);
+    if (data) {
+     console.log("type of the listener signal received: ", typeof data);
+     //  setListenerAnswer(data.signalData)
+     peer.signal(data.signalData);
+    }
+   });
+
+   peer.on("connect", () => {
+    console.log("Peer connected!");
+    setIsLoading(false);
+    setPeerConnected(true);
+   });
+
+   peer.on("error", (err) => {
+    console.log("Error connecting peer: ", err);
+   });
+  } catch (error) {
+   console.log("Error creating peer: ", error);
+  }
+
+  setIsLoading(true);
+ };
+
+ const updateStream = (stream: MediaStream | null) => {
+  if (stream) {
+   console.log("Streaming...");
+   setStream(stream);
   }
  };
 
@@ -111,7 +123,7 @@ const Streamer = () => {
   <div className="w-full items-center justify-center h-screen flex">
    {isServerConnected ? (
     <div className="block">
-     {!isIdConnected ? (
+     {!isPeerConnected ? (
       <IdContainer
        streamerId={streamerId}
        generateID={generateID}
