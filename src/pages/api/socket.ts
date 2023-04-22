@@ -7,6 +7,13 @@ interface Connection {
     streamId: string;
 }
 
+interface Room {
+    [streamId: string]: {
+        streamerUsername: string;
+        listenerUsernames: string[];
+    }
+}
+
 let io: IOServer | undefined;
 
 const runServer = () => {
@@ -21,6 +28,7 @@ const runServer = () => {
 io = runServer();
 
 const connections: Connection[] = [];
+const room: Room = {};
 
 const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
     if (!io) {
@@ -33,14 +41,22 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
         io.on("connection", (socket) => {
             console.log("Socket connected");
 
-            socket.on("streamer-ready", (data: any) => {
+            socket.on("streamer-ready", (data) => {
                 connections.push({ streamId: data.streamId });
-                console.log(`Streamer ${JSON.stringify(data.streamId)} is ready`);
+                room[data.streamId] = { streamerUsername: data.streamerUsername, listenerUsernames: [] };
+                console.log(`Streamer ${JSON.stringify(data.streamerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
             });
 
             socket.on("listener-ready", async (data) => {
-                console.log(`Listener for stream ${JSON.stringify(data.streamId)} is ready`);
+                console.log(`Listener ${JSON.stringify(data.listenerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
 
+                if (room[data.streamId].listenerUsernames.length === 0) {
+                    room[data.streamId].listenerUsernames.push(data.listenerUsername);
+                } else {
+                    room[data.streamId].listenerUsernames[0] = data.listenerUsername;
+                }
+
+                console.log('Checking room: ', room);
                 await sendSignalDataToListener(data.streamId, socket)
             });
 

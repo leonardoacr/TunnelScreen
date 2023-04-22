@@ -23,6 +23,5 @@ export function useCopyToClipboard() {
         }
     };
 
-    // 👇 We want the result as a tuple
     return [copy, result] as const;
 }

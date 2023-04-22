@@ -14,6 +14,9 @@ const Streamer = () => {
   const [streamId, setStreamId] = useState<string>("");
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [streamerUsername, setStreamerUsername] = useState<string>("");
+  const [connectButtonClicked, setConnectButtonClicked] =
+    useState<boolean>(false);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const peerRef = useRef<Peer.Instance | null>(null);
@@ -22,8 +25,10 @@ const Streamer = () => {
   const router = useRouter();
 
   const handleConnect = () => {
-    socket?.emit("streamer-ready", { streamId });
+    setConnectButtonClicked(true);
     setIsLoading(true);
+
+    socket?.emit("streamer-ready", { streamId, streamerUsername });
 
     socket.on("id-connection-stablished", (data: boolean) => {
       if (data) {
@@ -32,6 +37,20 @@ const Streamer = () => {
         setIsIdConnected(true);
       }
     });
+  };
+
+  const cancelConnect = () => {
+    setIsLoading(false);
+    setIsIdConnected(false);
+    setConnectButtonClicked(false);
+
+    const streamerUsernameInputStatus = document.getElementById(
+      "streamer-username"
+    ) as HTMLInputElement;
+
+    if (streamerUsernameInputStatus) {
+      streamerUsernameInputStatus.disabled = false;
+    }
   };
 
   const updateStream = (stream: MediaStream | null) => {
@@ -52,7 +71,11 @@ const Streamer = () => {
           streamId,
           signalData: offer,
         });
-        socket.emit("streamer-signal", { streamId, signalData: offer });
+        socket.emit("streamer-signal", {
+          streamId,
+          signalData: offer,
+          streamerUsername,
+        });
       });
 
       socket.on("listener-answer", (data: any) => {
@@ -90,8 +113,22 @@ const Streamer = () => {
     setStreamId(uuidv4().slice(0, 16));
   };
 
+  const updateStreamerUsername = (streamerUsername: string) => {
+    const streamerUsernameInputStatus = document.getElementById(
+      "streamer-username"
+    ) as HTMLInputElement;
+
+    if (connectButtonClicked) {
+      streamerUsernameInputStatus.disabled = true;
+    } else {
+      streamerUsernameInputStatus.removeAttribute("disabled");
+      streamerUsername = streamerUsername.replace(/\s+/g, "");
+      setStreamerUsername(streamerUsername);
+    }
+  };
+
   return (
-    <div className="w-full items-center justify-center h-screen flex">
+    <div className="flex h-screen w-full items-center justify-center">
       {isServerConnected ? (
         <>
           <div className="block">
@@ -99,14 +136,22 @@ const Streamer = () => {
               <IdContainer
                 streamId={streamId}
                 generateID={generateID}
+                streamerUsername={streamerUsername}
+                updateStreamerUsername={(streamerUsername: string) =>
+                  updateStreamerUsername(streamerUsername)
+                }
                 handleConnect={handleConnect}
+                cancelConnect={cancelConnect}
+                isConnectButtonClicked={connectButtonClicked}
                 isLoading={isLoading}
               />
             ) : (
               <ScreenSharingContainer
                 videoRef={videoRef}
                 closeStream={closeStream}
-                updateStream={(stream) => updateStream(stream)}
+                updateStream={(stream: MediaStream | null) =>
+                  updateStream(stream)
+                }
               />
             )}
             <div>

@@ -7,14 +7,22 @@ import { WaitingConnections } from "../WaitingConnections";
 interface iDContainerProps {
   streamId: string;
   generateID: () => void;
+  streamerUsername: string;
+  updateStreamerUsername: (username: string) => void;
   handleConnect: () => void;
+  cancelConnect: () => void;
+  isConnectButtonClicked: boolean;
   isLoading: boolean;
 }
 
 const IdContainer: FC<iDContainerProps> = ({
   streamId,
   generateID,
+  streamerUsername,
+  updateStreamerUsername,
   handleConnect,
+  cancelConnect,
+  isConnectButtonClicked,
   isLoading,
 }) => {
   const [copyToClipboard, copyResult] = useCopyToClipboard();
@@ -59,12 +67,34 @@ const IdContainer: FC<iDContainerProps> = ({
                   onClick={generateID}
                 />
               ) : (
-                <Button
-                  backgroundColor="purple"
-                  borderColor="gray"
-                  text="Connect!"
-                  onClick={handleConnect}
-                />
+                <div>
+                  <p className="left mt-2 flex">Chose your username</p>
+                  <input
+                    className="my-2 w-full flex-grow rounded border border-gray-600 bg-neutral-800 p-2 text-center text-neutral-100 focus:border-sky-700 focus:outline-none"
+                    type="text"
+                    id="streamer-username"
+                    name="streamer-username"
+                    value={streamerUsername}
+                    onChange={(e) => updateStreamerUsername(e.target.value)}
+                    placeholder="Idyllic"
+                    maxLength={32}
+                  />
+                  {isConnectButtonClicked ? (
+                    <Button
+                      backgroundColor="red"
+                      borderColor="gray"
+                      text="Cancel"
+                      onClick={cancelConnect}
+                    />
+                  ) : (
+                    <Button
+                      backgroundColor="purple"
+                      borderColor="gray"
+                      text="Connect!"
+                      onClick={handleConnect}
+                    />
+                  )}
+                </div>
               )}
             </label>
           </div>
