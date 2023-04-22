@@ -7,8 +7,8 @@ import { WaitingConnections } from "@/components/WaitingConnections";
 import IdContainer from "@/components/Streamer/IdContainer";
 import ScreenSharingContainer from "@/components/Streamer/ScreenSharingContainer";
 import useSocket from "@/hooks/useSocket";
-import { getRandomUsername } from "@/helpers/usernameGenerator";
 import { Room } from "./api/ISocket";
+import { StreamerHelpers } from "@/helpers/Streamer/StreamerHelpers";
 
 const Streamer = () => {
   const [isPeerConnected, setPeerConnected] = useState(false);
@@ -21,10 +21,10 @@ const Streamer = () => {
   const [room, setRoom] = useState<Room>({});
   const [connectButtonClicked, setConnectButtonClicked] =
     useState<boolean>(false);
+  const [peers, setPeers] = useState<Peer.Instance[]>([]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const peerRef = useRef<Peer.Instance | null>(null);
-
+  const peersRef = useRef<Peer.Instance[]>([]);
   const { socket, isServerConnected } = useSocket();
   const router = useRouter();
 
@@ -42,112 +42,53 @@ const Streamer = () => {
   }, [room, stream, streamId]);
 
   const handleConnect = async () => {
-    if (streamerUsername === "") {
-      let username = await getRandomUsername();
-      while (!username) {
-        username = await getRandomUsername();
-      }
-      await setStreamerUsername(username);
-    }
-    if (streamerUsername !== "") {
-      setConnectButtonClicked(true);
-      setIsLoading(true);
-
-      console.log("emitting: ", streamerUsername);
-      socket?.emit("streamer-ready", { streamId, streamerUsername });
-
-      socket.on("id-connection-stablished", async (data: any) => {
-        if (data) {
-          console.log("ID connection established", data);
-
-          await setRoom((prevRoom) => {
-            const newRoom = { ...prevRoom };
-            const listenerUsernames =
-              newRoom[streamId]?.listenerUsernames || [];
-            if (!listenerUsernames.includes(data.listenerUsername)) {
-              newRoom[streamId] = {
-                streamerUsername: streamerUsername,
-                listenerUsernames: [
-                  ...listenerUsernames,
-                  data.listenerUsername,
-                ],
-              };
-            }
-            return newRoom;
-          });
-
-          setIsLoading(false);
-          setIsIdConnected(true);
-        }
-      });
-    }
+    StreamerHelpers.handleConnect({
+      streamerUsername,
+      streamId,
+      socket,
+      setStreamerUsername,
+      setIsLoading,
+      setIsIdConnected,
+      setRoom,
+    });
   };
 
   const cancelConnect = () => {
-    setIsLoading(false);
-    setIsIdConnected(false);
-    setConnectButtonClicked(false);
-
-    const streamerUsernameInputStatus = document.getElementById(
-      "streamer-username"
-    ) as HTMLInputElement;
-
-    if (streamerUsernameInputStatus) {
-      streamerUsernameInputStatus.disabled = false;
-    }
+    StreamerHelpers.cancelConnect(
+      setIsLoading,
+      setIsIdConnected,
+      setConnectButtonClicked
+    );
   };
 
   const updateStream = (stream: MediaStream | null) => {
     if (stream) {
-      setIsLoading(true);
-      setIsSharing(true);
-      setStream(stream);
-      console.log("check stream", stream);
-      const peer = new Peer({
-        initiator: true,
-        trickle: false,
+      if (!isSharing) {
+        setIsLoading(true);
+        setIsSharing(true);
+        setStream(stream);
+        console.log("check stream", stream);
+      }
+
+      const newPeer = StreamerHelpers.createNewPeer({
+        streamId,
+        socket,
         stream,
+        streamerUsername,
+        setIsLoading,
+        setPeerConnected,
+        peersRef,
       });
 
-      peerRef.current = peer;
-
-      peer.on("signal", (offer: Peer.SignalData) => {
-        console.log("Streamer offer sended...", {
-          streamId,
-          signalData: offer,
-        });
-        socket.emit("streamer-signal", {
-          streamId,
-          signalData: offer,
-          streamerUsername,
-        });
-      });
-
-      socket.on("listener-answer", (data: any) => {
-        if (data.streamId === streamId) {
-          const answer = data.signalData;
-          console.log("Streamer received Listener answer:", answer);
-          if (answer) {
-            peer.signal(answer);
-          }
-        }
-      });
-
-      peer.on("connect", () => {
-        console.log("Peer connected!");
-        setIsLoading(false);
-        setPeerConnected(true);
-      });
-
-      peer.on("error", (err) => {
-        console.log("Error connecting peer: ", err);
-      });
+      setPeers((prevPeers) => [...prevPeers, newPeer]);
     }
   };
 
   const closeStream = () => {
-    peerRef.current?.destroy();
-    peerRef.current = null;
+    peersRef.current?.forEach((peer) => {
+      peer.destroy();
+    });
+    peersRef.current = [];
 
     setPeerConnected(false);
 
