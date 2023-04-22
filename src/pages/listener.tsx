@@ -23,25 +23,28 @@ const Listener = () => {
     setStreamId(streamId);
   };
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
     if (listenerUsername === "") {
-      setListenerUsername(getRandomUsername() as string);
+      const username = await getRandomUsername();
+      setListenerUsername(username);
     }
 
-    setConnectButtonClicked(true);
-    setIsLoading(true);
+    if (listenerUsername !== "") {
+      setConnectButtonClicked(true);
+      setIsLoading(true);
 
-    console.log("Listener ready...");
+      console.log("Listener ready...", streamId, listenerUsername);
 
-    socket?.emit("listener-ready", { streamId, listenerUsername });
+      socket?.emit("listener-ready", { streamId, listenerUsername });
 
-    socket.on("id-connection-stablished", (data: boolean) => {
-      if (data) {
-        console.log("ID connection established");
-        setIsLoading(false);
-        setIsIdConnected(true);
-      }
-    });
+      socket.on("id-connection-stablished", (data: boolean) => {
+        if (data) {
+          console.log("ID connection established");
+          setIsLoading(false);
+          setIsIdConnected(true);
+        }
+      });
+    }
   };
 
   const cancelConnect = () => {

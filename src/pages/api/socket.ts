@@ -33,14 +33,13 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
             socket.on("streamer-ready", (data) => {
                 connections.push({ streamId: data.streamId });
                 room[data.streamId] = { streamerUsername: data.streamerUsername, listenerUsernames: [] };
-                console.log(`Streamer ${JSON.stringify(data.streamerUsername)} for stream 
-                ${JSON.stringify(data.streamId)} is ready`);
+                console.log('teste data: ', data)
+                console.log(`Streamer ${JSON.stringify(data.streamerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
             });
 
             socket.on("listener-ready", async (data) => {
-                console.log(`Listener ${JSON.stringify(data.listenerUsername)} for stream 
-                ${JSON.stringify(data.streamId)} is ready`);
-
+                console.log(`Listener ${JSON.stringify(data.listenerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
+                console.log('room test: ', room)
                 if (room[data.streamId].listenerUsernames.length === 0) {
                     room[data.streamId].listenerUsernames.push(data.listenerUsername);
                 } else {

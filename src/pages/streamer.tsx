@@ -25,22 +25,29 @@ const Streamer = () => {
   const { socket, isServerConnected } = useSocket();
   const router = useRouter();
 
-  const handleConnect = () => {
+  const handleConnect = async () => {
     if (streamerUsername === "") {
-      setStreamerUsername(getRandomUsername() as string);
-    }
-    setConnectButtonClicked(true);
-    setIsLoading(true);
-
-    socket?.emit("streamer-ready", { streamId, streamerUsername });
-
-    socket.on("id-connection-stablished", (data: boolean) => {
-      if (data) {
-        console.log("ID connection established");
-        setIsLoading(false);
-        setIsIdConnected(true);
+      let username = await getRandomUsername();
+      while (!username) {
+        username = await getRandomUsername();
       }
-    });
+      await setStreamerUsername(username);
+    }
+    if (streamerUsername !== "") {
+      setConnectButtonClicked(true);
+      setIsLoading(true);
+
+      console.log("emitting: ", streamerUsername);
+      socket?.emit("streamer-ready", { streamId, streamerUsername });
+
+      socket.on("id-connection-stablished", (data: boolean) => {
+        if (data) {
+          console.log("ID connection established");
+          setIsLoading(false);
+          setIsIdConnected(true);
+        }
+      });
+    }
   };
 
   const cancelConnect = () => {

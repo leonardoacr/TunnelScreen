@@ -31,7 +31,7 @@ const IdContainer: FC<IdContainerProps> = ({
   const handlePaste = async () => {
     try {
       const text = await navigator.clipboard.readText();
-      setStreamId(text);
+      updateStreamId(text);
     } catch (error) {
       console.error("Failed to paste from clipboard:", error);
     }
