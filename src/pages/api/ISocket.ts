@@ -20,6 +20,12 @@ export interface StreamId {
 }
 
 export interface Connection {
-    streamId: StreamId;
-    // signalData: Peer.SignalData | undefined;
+    streamId: string;
+}
+
+export interface Room {
+    [streamId: string]: {
+        streamerUsername: string;
+        listenerUsernames: string[];
+    }
 }

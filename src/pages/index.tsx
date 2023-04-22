@@ -1,30 +1,21 @@
-import Button from "@/components/Button";
+import BlueButton from "@/components/Buttons/BlueButton";
+import PurpleButton from "@/components/Buttons/PurpleButton";
 import Link from "next/link";
 
 const HomePage = () => {
   return (
-    <div className="bg-gray-900 h-screen flex items-center justify-center">
+    <div className="flex h-screen items-center justify-center bg-gray-900">
       <div className="text-center">
-        <h1 className="text-4xl lg:text-6xl text-white font-bold mb-8">
+        <h1 className="mb-8 text-4xl font-bold text-white lg:text-6xl">
           <span className="text-sky-600">Tunnel</span>
           <span className="text-purple-800">Screen</span>
         </h1>
         <div className="flex justify-center space-x-4">
           <Link href="/streamer">
-            <Button
-              backgroundColor="sky"
-              borderColor="gray"
-              text="Stream"
-              textColor="gray"
-            />
+            <BlueButton text="Stream" />
           </Link>
           <Link href="/listener">
-            <Button
-              backgroundColor="purple"
-              borderColor="gray"
-              text="Watch"
-              textColor="gray"
-            />
+            <PurpleButton text="Watch" />
           </Link>
         </div>
       </div>

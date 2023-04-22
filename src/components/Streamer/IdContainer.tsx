@@ -1,8 +1,10 @@
 import React, { FC } from "react";
 import Button from "../Button";
-import { Copy, Wifi } from "lucide-react";
+import { Copy } from "lucide-react";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { WaitingConnections } from "../WaitingConnections";
+import ConnectComponent from "../ConnectStreamerComponent";
+import GrayButton from "../Buttons/GrayButton";
 
 interface iDContainerProps {
   streamId: string;
@@ -60,41 +62,16 @@ const IdContainer: FC<iDContainerProps> = ({
           <div>
             <label htmlFor="generate-stream-id">
               {!streamId ? (
-                <Button
-                  backgroundColor="gray"
-                  borderColor="gray"
-                  text="Generate ID"
-                  onClick={generateID}
-                />
+                <GrayButton text="Generate ID" onClick={generateID} />
               ) : (
-                <div>
-                  <p className="left mt-2 flex">Chose your username</p>
-                  <input
-                    className="my-2 w-full flex-grow rounded border border-gray-600 bg-neutral-800 p-2 text-center text-neutral-100 focus:border-sky-700 focus:outline-none"
-                    type="text"
-                    id="streamer-username"
-                    name="streamer-username"
-                    value={streamerUsername}
-                    onChange={(e) => updateStreamerUsername(e.target.value)}
-                    placeholder="Idyllic"
-                    maxLength={32}
-                  />
-                  {isConnectButtonClicked ? (
-                    <Button
-                      backgroundColor="red"
-                      borderColor="gray"
-                      text="Cancel"
-                      onClick={cancelConnect}
-                    />
-                  ) : (
-                    <Button
-                      backgroundColor="purple"
-                      borderColor="gray"
-                      text="Connect!"
-                      onClick={handleConnect}
-                    />
-                  )}
-                </div>
+                <ConnectComponent
+                  id="streamer-username"
+                  username={streamerUsername}
+                  updateUsername={updateStreamerUsername}
+                  isConnectButtonClicked={isConnectButtonClicked}
+                  cancelConnect={cancelConnect}
+                  handleConnect={handleConnect}
+                />
               )}
             </label>
           </div>

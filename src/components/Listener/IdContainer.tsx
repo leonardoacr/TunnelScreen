@@ -1,16 +1,25 @@
 import React, { FC, useState } from "react";
 import Button from "../Button";
-import { Wifi } from "lucide-react";
+import { ClipboardPaste, Wifi } from "lucide-react";
+import PurpleButton from "../Buttons/PurpleButton";
 
 interface IdContainerProps {
   getStreamId: (streamId: string) => void;
+  listenerUsername: string;
+  updateListenerUsername: (username: string) => void;
   handleConnect: () => void;
+  cancelConnect: () => void;
+  isConnectButtonClicked: boolean;
   isLoading: boolean;
 }
 
 const IdContainer: FC<IdContainerProps> = ({
   getStreamId,
+  listenerUsername,
+  updateListenerUsername,
   handleConnect,
+  cancelConnect,
+  isConnectButtonClicked,
   isLoading,
 }) => {
   const [streamId, setStreamId] = useState<string>("");
@@ -18,6 +27,15 @@ const IdContainer: FC<IdContainerProps> = ({
   const updateStreamId = (value: string) => {
     setStreamId(value);
     getStreamId(value);
+  };
+
+  const handlePaste = async () => {
+    try {
+      const text = await navigator.clipboard.readText();
+      setStreamId(text);
+    } catch (error) {
+      console.error("Failed to paste from clipboard:", error);
+    }
   };
 
   return (
@@ -37,15 +55,11 @@ const IdContainer: FC<IdContainerProps> = ({
               onChange={(e) => updateStreamId(e.target.value)}
               placeholder="Stream ID"
             />
-            <Button
-              backgroundColor="purple"
-              borderColor="gray"
-              text="Connect"
-              textColor="neutral"
-              onClick={handleConnect}
-            />
+            <button onClick={handlePaste}>
+              <ClipboardPaste />
+            </button>
           </div>
-
+          <PurpleButton text="Connect" onClick={handleConnect} />
           {isLoading && (
             <div className="mt-4 flex w-full items-center justify-center text-center">
               <div className="mr-2 font-bold text-zinc-300">

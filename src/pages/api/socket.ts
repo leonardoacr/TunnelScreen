@@ -1,18 +1,7 @@
 import { Server } from 'socket.io';
 import type { NextApiRequest } from 'next'
 import type { Server as IOServer } from 'socket.io'
-import { NextApiResponseWithSocket } from './ISocket';
-
-interface Connection {
-    streamId: string;
-}
-
-interface Room {
-    [streamId: string]: {
-        streamerUsername: string;
-        listenerUsernames: string[];
-    }
-}
+import { Connection, NextApiResponseWithSocket, Room } from './ISocket';
 
 let io: IOServer | undefined;
 
@@ -30,7 +19,7 @@ io = runServer();
 const connections: Connection[] = [];
 const room: Room = {};
 
-const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
+const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     if (!io) {
         io = runServer();
     }
@@ -44,11 +33,13 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
             socket.on("streamer-ready", (data) => {
                 connections.push({ streamId: data.streamId });
                 room[data.streamId] = { streamerUsername: data.streamerUsername, listenerUsernames: [] };
-                console.log(`Streamer ${JSON.stringify(data.streamerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
+                console.log(`Streamer ${JSON.stringify(data.streamerUsername)} for stream 
+                ${JSON.stringify(data.streamId)} is ready`);
             });
 
             socket.on("listener-ready", async (data) => {
-                console.log(`Listener ${JSON.stringify(data.listenerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
+                console.log(`Listener ${JSON.stringify(data.listenerUsername)} for stream 
+                ${JSON.stringify(data.streamId)} is ready`);
 
                 if (room[data.streamId].listenerUsernames.length === 0) {
                     room[data.streamId].listenerUsernames.push(data.listenerUsername);
@@ -57,7 +48,7 @@ const SocketHandler = (req: NextApiRequest, res: NextApiResponseWithSocket) => {
                 }
 
                 console.log('Checking room: ', room);
-                await sendSignalDataToListener(data.streamId, socket)
+                await broadcastIdConnectionStablished(data, socket)
             });
 
             socket.on('streamer-signal', (data) => {
@@ -83,16 +74,16 @@ async function findConnection(streamId: any) {
     return connections.find(conn => conn.streamId === streamId);
 }
 
-async function sendSignalDataToListener(streamId: any, socket: any) {
-    const connection: Connection | undefined = await findConnection(streamId);
+async function broadcastIdConnectionStablished(data: any, socket: any) {
+    const connection: Connection | undefined = await findConnection(data.streamId);
     if (!connection) {
-        console.log(`No streamer found for stream ID ${JSON.stringify(streamId)}`);
+        console.log(`No streamer found for stream ID ${JSON.stringify(data.streamId)}`);
         return;
     }
 
-    console.log(`Streamer found for stream ID ${JSON.stringify(streamId)}`);
-    socket.broadcast.emit('id-connection-stablished', true);
-    socket.emit('id-connection-stablished', true);
+    console.log(`Streamer found for stream ID ${JSON.stringify(data.streamId)}`);
+    socket.broadcast.emit('id-connection-stablished', data);
+    socket.emit('id-connection-stablished', data);
 }
 
 export default SocketHandler;

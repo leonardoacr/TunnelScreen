@@ -28,11 +28,17 @@
     "@types/simple-peer": "^9.11.5",
     "@types/uuid": "^9.0.1",
     "@types/ws": "^8.5.4",
+    "better-usernames": "^1.5.2",
+    "fantasy-content-generator": "^4.9.1",
+    "fantasy-name-generator": "^2.0.0",
+    "i": "^0.3.7",
+    "npm": "^9.6.5",
     "prettier": "^2.8.7",
     "prettier-plugin-tailwindcss": "^0.2.7",
     "simple-peer": "^9.11.1",
     "socket.io": "^4.6.1",
     "socket.io-client": "^4.6.1",
+    "starwars-names-generator": "^2.0.0",
     "uuid": "^9.0.0",
     "webrtc-adapter": "^8.2.2"
   }

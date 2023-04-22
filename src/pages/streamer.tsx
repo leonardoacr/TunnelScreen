@@ -7,6 +7,7 @@ import { WaitingConnections } from "@/components/WaitingConnections";
 import IdContainer from "@/components/Streamer/IdContainer";
 import ScreenSharingContainer from "@/components/Streamer/ScreenSharingContainer";
 import useSocket from "@/hooks/useSocket";
+import { getRandomUsername } from "@/helpers/usernameGenerator";
 
 const Streamer = () => {
   const [isPeerConnected, setPeerConnected] = useState(false);
@@ -25,6 +26,11 @@ const Streamer = () => {
   const router = useRouter();
 
   const handleConnect = () => {
+    console.log("wtf? ", streamerUsername);
+    if (streamerUsername === "") {
+      // generate a random username
+      setStreamerUsername(getRandomUsername() as string);
+    }
     setConnectButtonClicked(true);
     setIsLoading(true);
 
