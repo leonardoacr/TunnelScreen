@@ -1,5 +1,5 @@
 import { useRouter } from "next/router";
-import React, { useState, useRef } from "react";
+import React, { useState, useRef, useEffect } from "react";
 import Peer from "simple-peer";
 import { v4 as uuidv4 } from "uuid";
 
@@ -8,6 +8,7 @@ import IdContainer from "@/components/Streamer/IdContainer";
 import ScreenSharingContainer from "@/components/Streamer/ScreenSharingContainer";
 import useSocket from "@/hooks/useSocket";
 import { getRandomUsername } from "@/helpers/usernameGenerator";
+import { Room } from "./api/ISocket";
 
 const Streamer = () => {
   const [isPeerConnected, setPeerConnected] = useState(false);
@@ -16,6 +17,7 @@ const Streamer = () => {
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [streamerUsername, setStreamerUsername] = useState<string>("");
+  const [room, setRoom] = useState<Room>({});
   const [connectButtonClicked, setConnectButtonClicked] =
     useState<boolean>(false);
 
@@ -24,6 +26,10 @@ const Streamer = () => {
 
   const { socket, isServerConnected } = useSocket();
   const router = useRouter();
+
+  useEffect(() => {
+    console.log("testing room: ", room);
+  }, [room]);
 
   const handleConnect = async () => {
     if (streamerUsername === "") {
@@ -40,9 +46,26 @@ const Streamer = () => {
       console.log("emitting: ", streamerUsername);
       socket?.emit("streamer-ready", { streamId, streamerUsername });
 
-      socket.on("id-connection-stablished", (data: boolean) => {
+      socket.on("id-connection-stablished", (data: any) => {
         if (data) {
-          console.log("ID connection established");
+          console.log("ID connection established", data);
+
+          setRoom((prevRoom) => {
+            const newRoom = { ...prevRoom };
+            const listenerUsernames =
+              newRoom[streamId]?.listenerUsernames || [];
+            if (!listenerUsernames.includes(data.listenerUsername)) {
+              newRoom[streamId] = {
+                streamerUsername: streamerUsername,
+                listenerUsernames: [
+                  ...listenerUsernames,
+                  data.listenerUsername,
+                ],
+              };
+            }
+            return newRoom;
+          });
+
           setIsLoading(false);
           setIsIdConnected(true);
         }
@@ -68,7 +91,7 @@ const Streamer = () => {
     if (stream) {
       setIsLoading(true);
       setIsSharing(true);
-
+      console.log("check stream", stream);
       const peer = new Peer({
         initiator: true,
         trickle: false,
@@ -160,9 +183,7 @@ const Streamer = () => {
               <ScreenSharingContainer
                 videoRef={videoRef}
                 closeStream={closeStream}
-                updateStream={(stream: MediaStream | null) =>
-                  updateStream(stream)
-                }
+                updateStream={(stream: MediaStream) => updateStream(stream)}
               />
             )}
             <div>

@@ -39,7 +39,7 @@ const Listener = () => {
 
       socket.on("id-connection-stablished", (data: boolean) => {
         if (data) {
-          console.log("ID connection established");
+          console.log("ID connection established", data);
           setIsLoading(false);
           setIsIdConnected(true);
         }
@@ -90,17 +90,18 @@ const Listener = () => {
     });
     peerRef.current = peer;
 
-    socket.on("listener-offer", (data: any) => {
+    socket.on("streamer-offer", async (data: any) => {
       if (data.streamId === streamId) {
-        const offer = data.signalData;
-        console.log("Listener received Listener offer:", offer);
+        const offer: Peer.SignalData = data.signalData;
         if (offer) {
-          peer.signal(offer);
+          await peer.signal(offer);
+          console.log("Listener received Streamer offer:", offer);
         }
       }
     });
 
     peer.on("signal", (answer: Peer.SignalData) => {
+      console.log("oi/????");
       console.log("Listener answer sended...", {
         streamId,
         signalData: answer,
@@ -121,7 +122,7 @@ const Listener = () => {
     peer.on("error", (err) => {
       console.log("Error connecting peer: ", err);
     });
-  }, [socket, isIdConnected, streamId]);
+  }, [socket, isIdConnected, streamId, isPeerConnected]);
 
   return (
     <div className="flex h-screen w-full items-center justify-center">
