@@ -4,6 +4,7 @@ import Peer from "simple-peer";
 import useSocket from "@/hooks/useSocket";
 import IdContainer from "@/components/Listener/IdContainer";
 import Video from "@/components/Video";
+import { getRandomUsername } from "@/helpers/usernameGenerator";
 
 const Listener = () => {
   const { socket, isServerConnected } = useSocket();
@@ -23,6 +24,10 @@ const Listener = () => {
   };
 
   const handleConnect = () => {
+    if (listenerUsername === "") {
+      setListenerUsername(getRandomUsername() as string);
+    }
+
     setConnectButtonClicked(true);
     setIsLoading(true);
 
@@ -82,10 +87,10 @@ const Listener = () => {
     });
     peerRef.current = peer;
 
-    socket.on("streamer-offer", (data: any) => {
+    socket.on("listener-offer", (data: any) => {
       if (data.streamId === streamId) {
         const offer = data.signalData;
-        console.log("Listener received Streamer offer:", offer);
+        console.log("Listener received Listener offer:", offer);
         if (offer) {
           peer.signal(offer);
         }

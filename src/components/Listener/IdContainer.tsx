@@ -1,7 +1,6 @@
 import React, { FC, useState } from "react";
-import Button from "../Button";
 import { ClipboardPaste, Wifi } from "lucide-react";
-import PurpleButton from "../Buttons/PurpleButton";
+import ConnectComponent from "../ConnectStreamerComponent";
 
 interface IdContainerProps {
   getStreamId: (streamId: string) => void;
@@ -59,7 +58,18 @@ const IdContainer: FC<IdContainerProps> = ({
               <ClipboardPaste />
             </button>
           </div>
-          <PurpleButton text="Connect" onClick={handleConnect} />
+          {streamId ? (
+            <div className="mt-4">
+              <ConnectComponent
+                id="listener-username"
+                username={listenerUsername}
+                updateUsername={updateListenerUsername}
+                isConnectButtonClicked={isConnectButtonClicked}
+                cancelConnect={cancelConnect}
+                handleConnect={handleConnect}
+              />
+            </div>
+          ) : null}
           {isLoading && (
             <div className="mt-4 flex w-full items-center justify-center text-center">
               <div className="mr-2 font-bold text-zinc-300">

@@ -1,5 +1,4 @@
 import React, { FC } from "react";
-import Button from "../Button";
 import { Copy } from "lucide-react";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { WaitingConnections } from "../WaitingConnections";

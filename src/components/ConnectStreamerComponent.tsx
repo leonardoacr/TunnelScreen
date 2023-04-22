@@ -1,6 +1,5 @@
 import React, { FunctionComponent } from "react";
 import UsernameInput from "./UsernameInput";
-import Button from "./Button";
 import PurpleButton from "./Buttons/PurpleButton";
 import RedButton from "./Buttons/RedButton";
 

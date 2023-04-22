@@ -26,9 +26,7 @@ const Streamer = () => {
   const router = useRouter();
 
   const handleConnect = () => {
-    console.log("wtf? ", streamerUsername);
     if (streamerUsername === "") {
-      // generate a random username
       setStreamerUsername(getRandomUsername() as string);
     }
     setConnectButtonClicked(true);
