@@ -17,6 +17,7 @@ const Streamer = () => {
   const [isSharing, setIsSharing] = useState<boolean>(false);
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [streamerUsername, setStreamerUsername] = useState<string>("");
+  const [stream, setStream] = useState<MediaStream | null>(null);
   const [room, setRoom] = useState<Room>({});
   const [connectButtonClicked, setConnectButtonClicked] =
     useState<boolean>(false);
@@ -29,7 +30,16 @@ const Streamer = () => {
 
   useEffect(() => {
     console.log("testing room: ", room);
-  }, [room]);
+
+    console.log(
+      "checking room listeners length to detect new user",
+      room[streamId]?.listenerUsernames?.length
+    );
+    if (room[streamId]?.listenerUsernames?.length > 1) {
+      console.log("yup");
+      updateStream(stream);
+    }
+  }, [room, stream, streamId]);
 
   const handleConnect = async () => {
     if (streamerUsername === "") {
@@ -46,11 +56,11 @@ const Streamer = () => {
       console.log("emitting: ", streamerUsername);
       socket?.emit("streamer-ready", { streamId, streamerUsername });
 
-      socket.on("id-connection-stablished", (data: any) => {
+      socket.on("id-connection-stablished", async (data: any) => {
         if (data) {
           console.log("ID connection established", data);
 
-          setRoom((prevRoom) => {
+          await setRoom((prevRoom) => {
             const newRoom = { ...prevRoom };
             const listenerUsernames =
               newRoom[streamId]?.listenerUsernames || [];
@@ -91,6 +101,7 @@ const Streamer = () => {
     if (stream) {
       setIsLoading(true);
       setIsSharing(true);
+      setStream(stream);
       console.log("check stream", stream);
       const peer = new Peer({
         initiator: true,
@@ -183,7 +194,9 @@ const Streamer = () => {
               <ScreenSharingContainer
                 videoRef={videoRef}
                 closeStream={closeStream}
-                updateStream={(stream: MediaStream) => updateStream(stream)}
+                updateStream={(stream: MediaStream | null) =>
+                  updateStream(stream)
+                }
               />
             )}
             <div>

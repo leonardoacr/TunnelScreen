@@ -7,7 +7,7 @@ import Video from "../Video";
 interface ScreenSharingContainerProps {
   videoRef: React.RefObject<HTMLVideoElement>;
   closeStream: () => void;
-  updateStream: (stream: MediaStream) => void;
+  updateStream: (stream: MediaStream | null) => void;
 }
 
 export const videoOptions = {
@@ -24,7 +24,7 @@ const ScreenSharingContainer = ({
   closeStream,
   updateStream,
 }: ScreenSharingContainerProps) => {
-  const [stream, setStream] = useState<MediaStream>();
+  const [stream, setStream] = useState<MediaStream | null>(null);
 
   const startSharing = async () => {
     await navigator.mediaDevices
@@ -46,7 +46,7 @@ const ScreenSharingContainer = ({
   const stopSharing = () => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
-      updateStream(new MediaStream());
+      updateStream(null);
       videoRef.current!.srcObject = null;
     }
   };

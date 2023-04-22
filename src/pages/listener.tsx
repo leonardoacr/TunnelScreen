@@ -101,7 +101,6 @@ const Listener = () => {
     });
 
     peer.on("signal", (answer: Peer.SignalData) => {
-      console.log("oi/????");
       console.log("Listener answer sended...", {
         streamId,
         signalData: answer,
