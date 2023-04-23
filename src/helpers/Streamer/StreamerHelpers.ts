@@ -2,7 +2,6 @@ import { getRandomUsername } from "@/helpers/usernameGenerator";
 import { Room } from "@/pages/api/ISocket";
 import { Socket } from "socket.io-client";
 import Peer from "simple-peer";
-import { PeerRef } from "@/pages/streamer";
 
 class StreamerHelpers {
     static currentPeerId = '';
@@ -86,12 +85,14 @@ class StreamerHelpers {
         stream,
         setIsLoading,
         setPeerConnected,
+        userId
     }: {
         streamId: string;
         socket: Socket;
         stream: MediaStream;
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
         setPeerConnected: React.Dispatch<React.SetStateAction<boolean>>;
+        userId: string
     }): Peer.Instance => {
         const newPeer = new Peer({
             initiator: true,
@@ -100,10 +101,12 @@ class StreamerHelpers {
 
         newPeer.on("signal", (offer: Peer.SignalData) => {
             console.log("Streamer offer sent...", {
+                userId,
                 streamId,
                 signalData: offer,
             });
             socket.emit("streamer-signal", {
+                userId,
                 streamId,
                 signalData: offer,
             });

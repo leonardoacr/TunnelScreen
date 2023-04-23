@@ -34,6 +34,8 @@ const Streamer = () => {
   const { socket, isServerConnected } = useSocket();
   const router = useRouter();
 
+  const socketRef = useRef();
+
   useEffect(() => {
     console.log("testing room: ", room);
 
@@ -77,16 +79,17 @@ const Streamer = () => {
       const users = room[streamId].peerIds;
       console.log("testing users: ", users);
 
-      users?.forEach((userID) => {
+      users?.forEach((userId) => {
         const peer = StreamerHelpers.createNewPeer({
           streamId,
           socket,
           stream,
           setIsLoading,
           setPeerConnected,
+          userId,
         });
         peersRef.current?.push({
-          peerId: userID,
+          peerId: userId,
           peer,
         });
         peers.push(peer);
