@@ -12,7 +12,7 @@ const Listener = () => {
   const [isIdConnected, setIsIdConnected] = useState<boolean>(false);
   const [streamId, setStreamId] = useState<string>("");
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [socketId, setSocketId] = useState<string>(
+  const [listenerId, setListenerId] = useState<string>(
     Math.random().toString(36).substring(2, 15)
   );
   const [streamingData, setStreamingData] = useState<MediaStream | null>(null);
@@ -38,10 +38,14 @@ const Listener = () => {
 
       console.log("Listener ready...", streamId, listenerUsername);
 
-      socket?.emit("listener-ready", { streamId, listenerUsername, socketId });
+      socket?.emit("listener-ready", {
+        streamId,
+        listenerUsername,
+        listenerId,
+      });
 
       socket.on("id-connection-stablished", (data: any) => {
-        if (data.socketId === socketId) {
+        if (data.listenerId === listenerId) {
           console.log("ID connection established", data);
           setIsLoading(false);
           setIsIdConnected(true);
@@ -94,7 +98,7 @@ const Listener = () => {
     peerRef.current = peer;
 
     socket.on("streamer-offer", async (data: any) => {
-      if (data.streamId === streamId && data.socketId === socketId) {
+      if (data.streamId === streamId && data.listenerId === listenerId) {
         const offer: Peer.SignalData = data.signalData;
         if (offer) {
           await peer.signal(offer);
@@ -108,7 +112,11 @@ const Listener = () => {
         streamId,
         signalData: answer,
       });
-      socket?.emit("listener-signal", { streamId, signalData: answer });
+      socket?.emit("listener-signal", {
+        streamId,
+        signalData: answer,
+        listenerUsername,
+      });
     });
 
     peer.on("stream", (stream) => {

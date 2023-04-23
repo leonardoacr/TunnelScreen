@@ -27,5 +27,6 @@ export interface Room {
     [streamId: string]: {
         streamerUsername: string;
         listenerUsernames: string[];
-    }
-}
+        peerIds?: string[];
+    };
+};

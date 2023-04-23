@@ -10,6 +10,11 @@ import useSocket from "@/hooks/useSocket";
 import { Room } from "./api/ISocket";
 import { StreamerHelpers } from "@/helpers/Streamer/StreamerHelpers";
 
+export interface PeerRef {
+  peerId: string;
+  peer: Peer.Instance;
+}
+
 const Streamer = () => {
   const [isPeerConnected, setPeerConnected] = useState(false);
   const [isIdConnected, setIsIdConnected] = useState<boolean>(false);
@@ -24,7 +29,8 @@ const Streamer = () => {
   const [peers, setPeers] = useState<Peer.Instance[]>([]);
 
   const videoRef = useRef<HTMLVideoElement>(null);
-  const peersRef = useRef<Peer.Instance[]>([]);
+  const peersRef = useRef<PeerRef[] | undefined>([]);
+
   const { socket, isServerConnected } = useSocket();
   const router = useRouter();
 
@@ -63,31 +69,36 @@ const Streamer = () => {
 
   const updateStream = (stream: MediaStream | null) => {
     if (stream) {
-      // if (!isSharing) {
       setIsLoading(true);
       setIsSharing(true);
       setStream(stream);
       console.log("check stream", stream);
-      // }
 
-      StreamerHelpers.createNewPeer({
-        streamId,
-        socket,
-        stream,
-        setIsLoading,
-        setPeerConnected,
-        peersRef,
-        setPeers,
+      const users = room[streamId].peerIds;
+      console.log("testing users: ", users);
+
+      users?.forEach((userID) => {
+        const peer = StreamerHelpers.createNewPeer({
+          streamId,
+          socket,
+          stream,
+          setIsLoading,
+          setPeerConnected,
+        });
+        peersRef.current?.push({
+          peerId: userID,
+          peer,
+        });
+        peers.push(peer);
       });
-
-      // setPeers((prevPeers) => [...prevPeers, newPeer]);
+      setPeers(peers);
     }
   };
 
   const closeStream = () => {
-    peersRef.current.forEach((peer) => {
-      peer.destroy();
-    });
+    // peersRef.current.forEach((peer) => {
+    //   peer.destroy();
+    // });
     peersRef.current = [];
     setPeers([]);
     setPeerConnected(false);

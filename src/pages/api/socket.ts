@@ -18,7 +18,7 @@ io = runServer();
 
 const connections: Connection[] = [];
 const room: Room = {};
-let socketId: string = '';
+let listenerId: string = '';
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     if (!io) {
@@ -47,8 +47,8 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
                     room[data.streamId].listenerUsernames[0] = data.listenerUsername;
                 }
 
-                socketId = data.socketId;
-                console.log('SocketID: ', socketId);
+                listenerId = data.listenerId;
+                console.log('ListenerId: ', listenerId);
 
                 console.log('Checking room: ', room);
                 await broadcastIdConnectionStablished(data, socket)
@@ -56,7 +56,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
 
             socket.on('streamer-signal', (data) => {
                 console.log("Offer from the streamer (ID, OFFER)", data.streamId, ' ', data.signalData);
-                data = { ...data, socketId };
+                data = { ...data, listenerId };
                 socket.broadcast.emit('streamer-offer', data);
             });
 

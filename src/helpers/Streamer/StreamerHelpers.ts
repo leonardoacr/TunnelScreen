@@ -2,8 +2,11 @@ import { getRandomUsername } from "@/helpers/usernameGenerator";
 import { Room } from "@/pages/api/ISocket";
 import { Socket } from "socket.io-client";
 import Peer from "simple-peer";
+import { PeerRef } from "@/pages/streamer";
 
 class StreamerHelpers {
+    static currentPeerId = '';
+
     static handleConnect = async ({
         streamerUsername,
         streamId,
@@ -31,23 +34,26 @@ class StreamerHelpers {
         if (streamerUsername !== "") {
             setIsLoading(true);
 
-            console.log("emitting: ", streamerUsername);
             socket?.emit("streamer-ready", { streamId, streamerUsername });
 
             socket?.on("id-connection-stablished", async (data: any) => {
                 if (data) {
                     console.log("ID connection established", data);
 
-                    await setRoom((prevRoom) => {
+                    setRoom((prevRoom) => {
                         const newRoom = { ...prevRoom };
-                        const listenerUsernames =
-                            newRoom[streamId]?.listenerUsernames || [];
+                        const listenerUsernames = newRoom[streamId]?.listenerUsernames || [];
+                        const peerIds = newRoom[streamId]?.peerIds || [];
+
                         if (!listenerUsernames.includes(data.listenerUsername)) {
                             newRoom[streamId] = {
                                 streamerUsername: streamerUsername,
                                 listenerUsernames: [...listenerUsernames, data.listenerUsername],
+                                peerIds: [...peerIds, data.listenerId],
                             };
+                            this.currentPeerId = data.listenerId;
                         }
+
                         return newRoom;
                     });
 
@@ -80,22 +86,15 @@ class StreamerHelpers {
         stream,
         setIsLoading,
         setPeerConnected,
-        peersRef,
-        setPeers,
     }: {
         streamId: string;
         socket: Socket;
         stream: MediaStream;
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
         setPeerConnected: React.Dispatch<React.SetStateAction<boolean>>;
-        peersRef: React.MutableRefObject<Peer.Instance[]>;
-        setPeers: React.Dispatch<React.SetStateAction<Peer.Instance[]>>;
-    }): void => {
-        // const newStream = new MediaStream(stream.getTracks());
-
+    }): Peer.Instance => {
         const newPeer = new Peer({
             initiator: true,
-            // trickle: true,
             stream: stream,
         });
 
@@ -111,10 +110,12 @@ class StreamerHelpers {
         });
 
         socket.on("listener-answer", (data: any) => {
+            console.log('quem ta ai? ', data.listenerUsername)
             if (data.streamId === streamId) {
                 const answer = data.signalData;
-                console.log("Streamer received Listener answer:", answer);
-                if (answer) {
+
+                if (answer && answer.type === 'answer') {
+                    console.log('Received answer:', answer);
                     newPeer.signal(answer);
                 }
             }
@@ -124,20 +125,27 @@ class StreamerHelpers {
             console.log("Peer connected!");
             setIsLoading(false);
             setPeerConnected(true);
-            setPeers((prevPeers) => [...prevPeers, newPeer]);
         });
 
         newPeer.on("error", (err) => {
             console.log("Error connecting peer: ", err);
         });
 
-        // Remove the peer from the peers state when it closes
-        newPeer.on("close", () => {
-            setPeers(peersRef.current.filter((peer) => peer !== newPeer));
-        });
+        // newPeer.on("close", () => {
+        //     console.log("Peer disconnected!");
+        //     // peersRef.current = peersRef.current?.filter((peer) => peer !== newPeer);
+        //     setPeers((prevPeers) => prevPeers.filter((peer) => peer !== newPeer));
+        // });
 
-        peersRef.current.push(newPeer);
+        console.log('testing the current peer id: ', this.currentPeerId)
+        // peersRef.current?.push({
+        //     peerId: this.currentPeerId,
+        //     peer: newPeer,
+        // });
+
+        return newPeer;
     };
+
 }
 
 export { StreamerHelpers };
