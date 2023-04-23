@@ -74,7 +74,6 @@ const Streamer = () => {
         streamId,
         socket,
         stream,
-        streamerUsername,
         setIsLoading,
         setPeerConnected,
         peersRef,

@@ -78,7 +78,6 @@ class StreamerHelpers {
         streamId,
         socket,
         stream,
-        streamerUsername,
         setIsLoading,
         setPeerConnected,
         peersRef,
@@ -86,7 +85,6 @@ class StreamerHelpers {
         streamId: string;
         socket: Socket;
         stream: MediaStream;
-        streamerUsername: string;
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
         setPeerConnected: React.Dispatch<React.SetStateAction<boolean>>;
         peersRef: React.MutableRefObject<Peer.Instance[]>;
@@ -105,7 +103,6 @@ class StreamerHelpers {
             socket.emit("streamer-signal", {
                 streamId,
                 signalData: offer,
-                streamerUsername,
             });
         });
 
