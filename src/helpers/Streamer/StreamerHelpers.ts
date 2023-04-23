@@ -81,6 +81,7 @@ class StreamerHelpers {
         setIsLoading,
         setPeerConnected,
         peersRef,
+        setPeers,
     }: {
         streamId: string;
         socket: Socket;
@@ -88,15 +89,18 @@ class StreamerHelpers {
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
         setPeerConnected: React.Dispatch<React.SetStateAction<boolean>>;
         peersRef: React.MutableRefObject<Peer.Instance[]>;
-    }): Peer.Instance => {
-        const peer = new Peer({
+        setPeers: React.Dispatch<React.SetStateAction<Peer.Instance[]>>;
+    }): void => {
+        // const newStream = new MediaStream(stream.getTracks());
+
+        const newPeer = new Peer({
             initiator: true,
-            trickle: false,
-            stream,
+            // trickle: true,
+            stream: stream,
         });
 
-        peer.on("signal", (offer: Peer.SignalData) => {
-            console.log("Streamer offer sended...", {
+        newPeer.on("signal", (offer: Peer.SignalData) => {
+            console.log("Streamer offer sent...", {
                 streamId,
                 signalData: offer,
             });
@@ -111,24 +115,28 @@ class StreamerHelpers {
                 const answer = data.signalData;
                 console.log("Streamer received Listener answer:", answer);
                 if (answer) {
-                    peer.signal(answer);
+                    newPeer.signal(answer);
                 }
             }
         });
 
-        peer.on("connect", () => {
+        newPeer.on("connect", () => {
             console.log("Peer connected!");
             setIsLoading(false);
             setPeerConnected(true);
+            setPeers((prevPeers) => [...prevPeers, newPeer]);
         });
 
-        peer.on("error", (err) => {
+        newPeer.on("error", (err) => {
             console.log("Error connecting peer: ", err);
         });
 
-        peersRef.current.push(peer);
+        // Remove the peer from the peers state when it closes
+        newPeer.on("close", () => {
+            setPeers(peersRef.current.filter((peer) => peer !== newPeer));
+        });
 
-        return peer;
+        peersRef.current.push(newPeer);
     };
 }
 

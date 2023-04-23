@@ -36,7 +36,7 @@ const Streamer = () => {
       room[streamId]?.listenerUsernames?.length
     );
     if (room[streamId]?.listenerUsernames?.length > 1) {
-      console.log("yup");
+      console.log("yup, peers: ", peers, peers);
       updateStream(stream);
     }
   }, [room, stream, streamId]);
@@ -63,34 +63,34 @@ const Streamer = () => {
 
   const updateStream = (stream: MediaStream | null) => {
     if (stream) {
-      if (!isSharing) {
-        setIsLoading(true);
-        setIsSharing(true);
-        setStream(stream);
-        console.log("check stream", stream);
-      }
+      // if (!isSharing) {
+      setIsLoading(true);
+      setIsSharing(true);
+      setStream(stream);
+      console.log("check stream", stream);
+      // }
 
-      const newPeer = StreamerHelpers.createNewPeer({
+      StreamerHelpers.createNewPeer({
         streamId,
         socket,
         stream,
         setIsLoading,
         setPeerConnected,
         peersRef,
+        setPeers,
       });
 
-      setPeers((prevPeers) => [...prevPeers, newPeer]);
+      // setPeers((prevPeers) => [...prevPeers, newPeer]);
     }
   };
 
   const closeStream = () => {
-    peersRef.current?.forEach((peer) => {
+    peersRef.current.forEach((peer) => {
       peer.destroy();
     });
     peersRef.current = [];
-
+    setPeers([]);
     setPeerConnected(false);
-
     router.push("/");
   };
 

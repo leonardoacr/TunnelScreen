@@ -89,7 +89,7 @@ const Listener = () => {
 
     const peer = new Peer({
       initiator: false,
-      trickle: false,
+      // trickle: false,
     });
     peerRef.current = peer;
 
