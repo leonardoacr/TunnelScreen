@@ -16,7 +16,7 @@ const Listener = () => {
   const [streamId, setStreamId] = useState<string>("");
   const [room, setRoom] = useState<Room>({});
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const [listenerId, setListenerId] = useState<string>(
+  const [listenerId] = useState<string>(
     Math.random().toString(36).substring(2, 15)
   );
   const [streamingData, setStreamingData] = useState<MediaStream | null>(null);
@@ -105,7 +105,14 @@ const Listener = () => {
       setPeerConnected,
       peerRef,
     });
-  }, [socket, isIdConnected, streamId, isPeerConnected]);
+  }, [
+    socket,
+    isIdConnected,
+    streamId,
+    isPeerConnected,
+    listenerUsername,
+    listenerId,
+  ]);
 
   return (
     <>

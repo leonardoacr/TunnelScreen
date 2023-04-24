@@ -1,6 +1,5 @@
 import { Room } from "@/pages/api/ISocket";
 import { useState } from "react";
-import GrayButton from "./Buttons/GrayButton";
 import PurpleBorderButton from "./Buttons/PurpleBorderButton";
 import { Copy, X } from "lucide-react";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
@@ -28,7 +27,11 @@ const StreamSelector = ({ room, streamId }: StreamSelectorProps) => {
       {showStream && (
         <>
           <div className="fixed left-0 top-0 z-50 h-full w-full bg-gray-900 bg-opacity-70"></div>
-          <div className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-indigo-950 bg-neutral-800/90 shadow-lg">
+          <div
+            className={`shadow-offset-bottom fixed left-1/2 top-1/2 z-50 w-10/12 -translate-x-1/2 
+            -translate-y-1/2 transform rounded-md border border-indigo-950 bg-neutral-800/90 
+            shadow-lg shadow-indigo-950 lg:w-1/4`}
+          >
             <div className="mr-2 mt-2 flex justify-end">
               <X
                 className="cursor-pointer text-indigo-500"
@@ -36,7 +39,7 @@ const StreamSelector = ({ room, streamId }: StreamSelectorProps) => {
               />
             </div>
             <div className="px-12 pb-8">
-              <h2 className="mb-4 text-lg font-semibold">Users in the room</h2>
+              <h2 className="mb-4 text-lg font-semibold">Users in this room</h2>
               <div className="flex flex-col gap-4">
                 <div className="flex items-center gap-2">
                   <div className="h-3 w-3 rounded-full bg-purple-700"></div>

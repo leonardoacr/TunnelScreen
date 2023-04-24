@@ -15,8 +15,14 @@ export const videoOptions = {
     width: { ideal: 1920 },
     height: { ideal: 1080 },
     frameRate: { ideal: 60 },
+    bitrate: 35000000,
+    encodingBitrate: 35000000,
   },
-  audio: true,
+  audio: {
+    sampleRate: { ideal: 192000 },
+    channelCount: { ideal: 2 },
+    bitrate: 128000,
+  },
 };
 
 const ScreenSharingContainer = ({
@@ -46,6 +52,7 @@ const ScreenSharingContainer = ({
   const stopSharing = () => {
     if (stream) {
       stream.getTracks().forEach((track) => track.stop());
+      setStream(null);
       updateStream(null);
       videoRef.current!.srcObject = null;
     }

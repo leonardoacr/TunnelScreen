@@ -36,8 +36,6 @@ const Streamer = () => {
   const { socket, isServerConnected } = useSocket();
   const router = useRouter();
 
-  const socketRef = useRef();
-
   useEffect(() => {
     console.log("testing room: ", room);
 
@@ -49,6 +47,7 @@ const Streamer = () => {
       console.log("yup, peers: ", peers, peers);
       updateStream(stream);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [room, stream, streamId]);
 
   const handleConnect = async () => {

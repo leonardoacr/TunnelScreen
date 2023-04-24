@@ -16,6 +16,10 @@ export function useCopyToClipboard() {
         } catch (e: any) {
             setResult({ state: 'error', message: e.message });
             throw e;
+        } finally {
+            setTimeout(() => {
+                setResult(null);
+            }, 6000);
         }
     };
 

@@ -6,6 +6,10 @@ import { Connection, NextApiResponseWithSocket, Room } from './ISocket';
 let io: IOServer | undefined;
 
 const runServer = () => {
+    if (io) {
+        return io;
+    }
+
     return new Server({
         cors: {
             origin: "*",
@@ -14,7 +18,7 @@ const runServer = () => {
     });
 }
 
-io = runServer();
+// io = runServer();
 
 const connections: Connection[] = [];
 const room: Room = {};
@@ -24,10 +28,10 @@ let currentStreamId: string = '';
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     if (!io) {
         io = runServer();
+        io.attach(res.socket.server);
     }
 
     if (io) {
-        io.attach(res.socket.server);
 
         io.on("connection", (socket) => {
             console.log("Socket connected");
@@ -62,8 +66,6 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
                 // console.log("Answer from the listener (ID, OFFER)", data.streamId, ' ', data.signalData);
                 socket.broadcast.emit('listener-answer', data);
             });
-
-
 
             socket.on('disconnect', () => {
                 console.log('Socket disconnected');
