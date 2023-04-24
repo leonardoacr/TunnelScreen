@@ -2,7 +2,7 @@ import { Wifi } from "lucide-react";
 
 export const WaitingConnections = () => {
   return (
-    <div className="mt-6 flex items-center justify-center space-x-2 text-center font-semibold">
+    <div className="my-4 flex items-center justify-center space-x-2 text-center font-semibold">
       <div className="text-lg font-bold text-neutral-200">
         Waiting for connections
       </div>

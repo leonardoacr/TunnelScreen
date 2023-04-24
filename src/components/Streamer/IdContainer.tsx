@@ -34,6 +34,7 @@ const IdContainer: FC<iDContainerProps> = ({
 
   return (
     <div>
+      {!isLoading ? null : <WaitingConnections />}
       <div className="h-full w-96 rounded border border-sky-700 bg-neutral-900/50 p-10">
         <h1 className="w-full pb-4 text-center text-lg font-bold text-neutral-100">
           Generate a Stream ID and send to your friends!
@@ -76,7 +77,6 @@ const IdContainer: FC<iDContainerProps> = ({
           </div>
         </div>
       </div>
-      {!isLoading ? null : <WaitingConnections />}
     </div>
   );
 };

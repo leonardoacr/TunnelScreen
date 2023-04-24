@@ -1,7 +1,7 @@
 import React, { FunctionComponent } from "react";
 import UsernameInput from "./UsernameInput";
-import PurpleButton from "./Buttons/PurpleButton";
 import RedButton from "./Buttons/RedButton";
+import BlueButton from "./Buttons/BlueButton";
 
 type ConnectStreamerComponentProps = {
   id: string;
@@ -29,7 +29,7 @@ const ConnectStreamerComponent: FunctionComponent<
         <RedButton text="Cancel" onClick={cancelConnect} />
       ) : (
         <div className="mt-4">
-          <PurpleButton text="Connect!" onClick={handleConnect} />
+          <BlueButton text="Connect!" onClick={handleConnect} />
         </div>
       )}
     </div>
