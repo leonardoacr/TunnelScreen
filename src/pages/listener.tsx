@@ -101,8 +101,10 @@ const Listener = () => {
       if (data.streamId === streamId && data.listenerId === listenerId) {
         const offer: Peer.SignalData = data.signalData;
         if (offer) {
-          await peer.signal(offer);
-          console.log("Listener received Streamer offer:", offer);
+          if (offer && offer.type === "offer") {
+            console.log("Received offer:", offer);
+          }
+          peer.signal(offer);
         }
       }
     });
@@ -116,6 +118,7 @@ const Listener = () => {
         streamId,
         signalData: answer,
         listenerUsername,
+        listenerId,
       });
     });
 

@@ -71,15 +71,19 @@ const Streamer = () => {
 
   const updateStream = (stream: MediaStream | null) => {
     if (stream) {
-      setIsLoading(true);
-      setIsSharing(true);
-      setStream(stream);
+      if (!isPeerConnected) {
+        setIsLoading(true);
+        setIsSharing(true);
+        setStream(stream);
+      }
       console.log("check stream", stream);
 
       const users = room[streamId].peerIds;
       console.log("testing users: ", users);
 
-      users?.forEach((userId) => {
+      if (users) {
+        const userId = users[users.length - 1];
+        console.log("Sending signal to the user", userId);
         const peer = StreamerHelpers.createNewPeer({
           streamId,
           socket,
@@ -93,8 +97,16 @@ const Streamer = () => {
           peer,
         });
         peers.push(peer);
-      });
-      setPeers(peers);
+
+        peer.on("close", () => {
+          console.log("Peer disconnected!");
+          setPeers((prevPeers) => prevPeers.filter((p) => p !== peer));
+        });
+
+        console.log("PEERS: ", peers);
+        console.log("PEERS REF: ", peersRef);
+        setPeers(peers);
+      }
     }
   };
 

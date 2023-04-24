@@ -113,14 +113,14 @@ class StreamerHelpers {
         });
 
         socket.on("listener-answer", (data: any) => {
-            console.log('quem ta ai? ', data.listenerUsername)
-            if (data.streamId === streamId) {
+            console.log('quem ta ai? ', data.listenerUsername, data.listenerId)
+            console.log('ID matches? ', userId, data.listenerId)
+            if (data.streamId === streamId && userId === data.listenerId) {
                 const answer = data.signalData;
-
                 if (answer && answer.type === 'answer') {
                     console.log('Received answer:', answer);
-                    newPeer.signal(answer);
                 }
+                newPeer.signal(answer);
             }
         });
 
@@ -134,17 +134,7 @@ class StreamerHelpers {
             console.log("Error connecting peer: ", err);
         });
 
-        // newPeer.on("close", () => {
-        //     console.log("Peer disconnected!");
-        //     // peersRef.current = peersRef.current?.filter((peer) => peer !== newPeer);
-        //     setPeers((prevPeers) => prevPeers.filter((peer) => peer !== newPeer));
-        // });
-
         console.log('testing the current peer id: ', this.currentPeerId)
-        // peersRef.current?.push({
-        //     peerId: this.currentPeerId,
-        //     peer: newPeer,
-        // });
 
         return newPeer;
     };
