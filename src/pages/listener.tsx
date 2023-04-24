@@ -4,7 +4,7 @@ import Peer from "simple-peer";
 import useSocket from "@/hooks/useSocket";
 import IdContainer from "@/components/Listener/IdContainer";
 import Video from "@/components/Video";
-import { getRandomUsername } from "@/helpers/usernameGenerator";
+import ListenerHelpers from "@/helpers/Streamer/ListenerHelpers";
 
 const Listener = () => {
   const { socket, isServerConnected } = useSocket();
@@ -27,45 +27,24 @@ const Listener = () => {
   };
 
   const handleConnect = async () => {
-    if (listenerUsername === "") {
-      const username = await getRandomUsername();
-      setListenerUsername(username);
-    }
-
-    if (listenerUsername !== "") {
-      setConnectButtonClicked(true);
-      setIsLoading(true);
-
-      console.log("Listener ready...", streamId, listenerUsername);
-
-      socket?.emit("listener-ready", {
-        streamId,
-        listenerUsername,
-        listenerId,
-      });
-
-      socket.on("id-connection-stablished", (data: any) => {
-        if (data.listenerId === listenerId) {
-          console.log("ID connection established", data);
-          setIsLoading(false);
-          setIsIdConnected(true);
-        }
-      });
-    }
+    ListenerHelpers.handleConnect(
+      streamId,
+      listenerUsername,
+      listenerId,
+      setListenerUsername,
+      setConnectButtonClicked,
+      setIsLoading,
+      setIsIdConnected,
+      socket
+    );
   };
 
   const cancelConnect = () => {
-    setIsLoading(false);
-    setIsIdConnected(false);
-    setConnectButtonClicked(false);
-
-    const listenerUsernameInputStatus = document.getElementById(
-      "listener-username"
-    ) as HTMLInputElement;
-
-    if (listenerUsernameInputStatus) {
-      listenerUsernameInputStatus.disabled = false;
-    }
+    ListenerHelpers.cancelConnect(
+      setIsLoading,
+      setIsIdConnected,
+      setConnectButtonClicked
+    );
   };
 
   const updateListenerUsername = (listenerUsername: string) => {
@@ -91,49 +70,15 @@ const Listener = () => {
   useEffect(() => {
     if (!isIdConnected) return;
 
-    const peer = new Peer({
-      initiator: false,
-      // trickle: false,
-    });
-    peerRef.current = peer;
-
-    socket.on("streamer-offer", async (data: any) => {
-      if (data.streamId === streamId && data.listenerId === listenerId) {
-        const offer: Peer.SignalData = data.signalData;
-        if (offer) {
-          if (offer && offer.type === "offer") {
-            console.log("Received offer:", offer);
-          }
-          peer.signal(offer);
-        }
-      }
-    });
-
-    peer.on("signal", (answer: Peer.SignalData) => {
-      console.log("Listener answer sended...", {
-        streamId,
-        signalData: answer,
-      });
-      socket?.emit("listener-signal", {
-        streamId,
-        signalData: answer,
-        listenerUsername,
-        listenerId,
-      });
-    });
-
-    peer.on("stream", (stream) => {
-      console.log("Listener stream created...", stream);
-      setStreamingData(stream);
-    });
-
-    peer.on("connect", () => {
-      setIsLoading(false);
-      setPeerConnected(true);
-      console.log("Peer Connected");
-    });
-    peer.on("error", (err) => {
-      console.log("Error connecting peer: ", err);
+    ListenerHelpers.createNewPeer({
+      streamId,
+      socket,
+      listenerUsername,
+      listenerId,
+      setStreamingData,
+      setIsLoading,
+      setPeerConnected,
+      peerRef,
     });
   }, [socket, isIdConnected, streamId, isPeerConnected]);
 
