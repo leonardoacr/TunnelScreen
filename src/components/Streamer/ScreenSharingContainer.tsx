@@ -1,6 +1,7 @@
 import { useState } from "react";
 import BlueButton from "../Buttons/BlueButton";
 import GrayButton from "../Buttons/GrayButton";
+import PurpleButton from "../Buttons/PurpleButton";
 import RedButton from "../Buttons/RedButton";
 import Video from "../Video";
 
@@ -56,7 +57,7 @@ const ScreenSharingContainer = ({
       <Video videoRef={videoRef} />
       <div className="w-full space-x-4 pt-4 text-center">
         {!stream ? (
-          <BlueButton text="Start Sharing" onClick={startSharing} />
+          <PurpleButton text="Start Sharing" onClick={startSharing} />
         ) : (
           <RedButton text="Stop Sharing" onClick={stopSharing} />
         )}

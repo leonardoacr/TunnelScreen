@@ -1,6 +1,6 @@
 import React, { FC, useState } from "react";
 import { ClipboardPaste, Wifi } from "lucide-react";
-import ConnectComponent from "../ConnectStreamerComponent";
+import ConnectComponent from "./ConnectListenerComponent";
 import { WaitingConnections } from "../WaitingConnections";
 
 interface IdContainerProps {

@@ -14,6 +14,7 @@ class StreamerHelpers {
         setIsLoading,
         setIsIdConnected,
         setRoom,
+        setConnectButtonClicked
     }: {
         streamerUsername: string;
         streamId: string;
@@ -22,6 +23,7 @@ class StreamerHelpers {
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>;
         setIsIdConnected: React.Dispatch<React.SetStateAction<boolean>>;
         setRoom: React.Dispatch<React.SetStateAction<Room>>;
+        setConnectButtonClicked: React.Dispatch<React.SetStateAction<boolean>>;
     }) => {
         if (streamerUsername === "") {
             let username = await getRandomUsername();
@@ -31,6 +33,7 @@ class StreamerHelpers {
             await setStreamerUsername(username);
         }
         if (streamerUsername !== "") {
+            setConnectButtonClicked(true);
             setIsLoading(true);
 
             socket?.emit("streamer-ready", { streamId, streamerUsername });

@@ -5,7 +5,7 @@ export default function Document() {
     <Html lang="en">
       <Head />
       <title>ScreenTunnel</title>
-      <body>
+      <body className="bg-neutral-900">
         <Main />
         <NextScript />
       </body>

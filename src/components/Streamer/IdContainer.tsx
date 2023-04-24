@@ -2,7 +2,7 @@ import React, { FC } from "react";
 import { Copy } from "lucide-react";
 import { useCopyToClipboard } from "@/hooks/useCopyToClipboard";
 import { WaitingConnections } from "../WaitingConnections";
-import ConnectComponent from "../ConnectStreamerComponent";
+import ConnectComponent from "../Streamer/ConnectStreamerComponent";
 import GrayButton from "../Buttons/GrayButton";
 
 interface iDContainerProps {

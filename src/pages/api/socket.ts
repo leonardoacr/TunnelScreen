@@ -19,6 +19,7 @@ io = runServer();
 const connections: Connection[] = [];
 const room: Room = {};
 let listenerId: string = '';
+let currentStreamId: string = '';
 
 const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
     if (!io) {
@@ -34,6 +35,7 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
             socket.on("streamer-ready", (data) => {
                 connections.push({ streamId: data.streamId });
                 room[data.streamId] = { streamerUsername: data.streamerUsername, listenerUsernames: [] };
+                currentStreamId = data.streamId;
                 console.log('teste data: ', data)
                 console.log(`Streamer ${JSON.stringify(data.streamerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
             });
@@ -55,15 +57,17 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
             });
 
             socket.on('streamer-signal', (data) => {
-                console.log("Offer from the streamer (ID, OFFER)", data.streamId, ' ', data.signalData);
+                // console.log("Offer from the streamer (ID, OFFER)", data.streamId, ' ', data.signalData);
                 data = { ...data, listenerId };
                 socket.broadcast.emit('streamer-offer', data);
             });
 
             socket.on('listener-signal', (data) => {
-                console.log("Answer from the listener (ID, OFFER)", data.streamId, ' ', data.signalData);
+                // console.log("Answer from the listener (ID, OFFER)", data.streamId, ' ', data.signalData);
                 socket.broadcast.emit('listener-answer', data);
             });
+
+
 
             socket.on('disconnect', () => {
                 console.log('Socket disconnected');
@@ -85,9 +89,13 @@ async function broadcastIdConnectionStablished(data: any, socket: any) {
         return;
     }
 
-    console.log(`Streamer found for stream ID ${JSON.stringify(data.streamId)}`);
+    const currentRoom = room[data.streamId];
+    data = { ...data, currentRoom }
+    console.log(`Streamer found for stream ID ${JSON.stringify(data)}`);
     socket.broadcast.emit('id-connection-stablished', data);
     socket.emit('id-connection-stablished', data);
+    socket.broadcast.emit('all-users', room);
+
 }
 
 export default SocketHandler;

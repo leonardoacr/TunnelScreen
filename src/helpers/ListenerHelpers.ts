@@ -1,6 +1,9 @@
 import { Socket } from "socket.io-client";
-import { getRandomUsername } from "../usernameGenerator";
+import { getRandomUsername } from "./usernameGenerator";
 import Peer from "simple-peer";
+import { socketInitializer } from "./socketIO";
+import { createSemanticDiagnosticsBuilderProgram } from "typescript";
+import { Room } from "@/pages/api/ISocket";
 
 class ListenerHelpers {
     static async handleConnect(
@@ -12,6 +15,7 @@ class ListenerHelpers {
         setIsLoading: React.Dispatch<React.SetStateAction<boolean>>,
         setIsIdConnected: React.Dispatch<React.SetStateAction<boolean>>,
         socket: Socket,
+        setRoom: React.Dispatch<React.SetStateAction<Room>>
     ) {
         if (listenerUsername === "") {
             const username = await getRandomUsername();
@@ -35,6 +39,22 @@ class ListenerHelpers {
                     console.log("ID connection established", data);
                     setIsLoading(false);
                     setIsIdConnected(true);
+                    // data = data.currentRoom;
+                    // setRoom((prevRoom) => {
+                    //     const newRoom = { ...prevRoom };
+                    //     const listenerUsernames = newRoom[streamId]?.listenerUsernames || [];
+                    //     const peerIds = newRoom[streamId]?.peerIds || [];
+
+                    //     if (!listenerUsernames.includes(listenerUsername)) {
+                    //         newRoom[streamId] = {
+                    //             streamerUsername: data.streamerUsername,
+                    //             listenerUsernames: [...listenerUsernames, data.listenerUsername],
+                    //             peerIds: [...peerIds, data.listenerId],
+                    //         };
+                    //     }
+
+                    //     return newRoom;
+                    // });
                 }
             });
         }
@@ -124,6 +144,38 @@ class ListenerHelpers {
 
         return peer;
     };
+
+    static getAllUsers = (
+        socket: Socket,
+        streamId: string,
+        setRoom: React.Dispatch<React.SetStateAction<Room>>
+    ) => {
+        socket?.on('all-users', data => {
+            console.log('quem tem aqui data', data)
+            console.log('stream id: ', streamId)
+            console.log('quem tem aqui ', data.streamId)
+
+            // console.log('quem tem aqui JSON ', JSON.parse(data)[streamId])
+
+            // data = JSON.parse(data)
+            if (data !== undefined) {
+                const { streamerUsername } = data[streamId];
+                setRoom((prevRoom) => {
+                    const newRoom = { ...prevRoom };
+                    const listenerUsernames = newRoom[streamId]?.listenerUsernames || [];
+                    // if (!listenerUsernames.includes(data.listenerUsername)) {
+                    newRoom[streamId] = {
+                        streamerUsername: streamerUsername,
+                        listenerUsernames: [...listenerUsernames, data.listenerUsername],
+                    };
+                    // }
+
+                    return newRoom;
+                });
+            }
+        });
+    };
+
 
 }
 

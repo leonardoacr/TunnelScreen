@@ -8,7 +8,9 @@ import IdContainer from "@/components/Streamer/IdContainer";
 import ScreenSharingContainer from "@/components/Streamer/ScreenSharingContainer";
 import useSocket from "@/hooks/useSocket";
 import { Room } from "./api/ISocket";
-import { StreamerHelpers } from "@/helpers/Streamer/StreamerHelpers";
+import { StreamerHelpers } from "@/helpers/StreamerHelpers";
+import Header from "@/components/Header";
+import StreamSelector from "@/components/StreamSelector";
 
 export interface PeerRef {
   peerId: string;
@@ -58,6 +60,7 @@ const Streamer = () => {
       setIsLoading,
       setIsIdConnected,
       setRoom,
+      setConnectButtonClicked,
     });
   };
 
@@ -111,9 +114,6 @@ const Streamer = () => {
   };
 
   const closeStream = () => {
-    // peersRef.current.forEach((peer) => {
-    //   peer.destroy();
-    // });
     peersRef.current = [];
     setPeers([]);
     setPeerConnected(false);
@@ -139,52 +139,59 @@ const Streamer = () => {
   };
 
   return (
-    <div className="flex h-screen w-full items-center justify-center">
-      {isServerConnected ? (
-        <>
-          <div className="block">
-            {!isIdConnected ? (
-              <IdContainer
-                streamId={streamId}
-                generateID={generateID}
-                streamerUsername={streamerUsername}
-                updateStreamerUsername={(streamerUsername: string) =>
-                  updateStreamerUsername(streamerUsername)
-                }
-                handleConnect={handleConnect}
-                cancelConnect={cancelConnect}
-                isConnectButtonClicked={connectButtonClicked}
-                isLoading={isLoading}
-              />
-            ) : (
-              <ScreenSharingContainer
-                videoRef={videoRef}
-                closeStream={closeStream}
-                updateStream={(stream: MediaStream | null) =>
-                  updateStream(stream)
-                }
-              />
-            )}
-            <div>
-              {isSharing ? (
-                isLoading ? (
-                  <div>
-                    <WaitingConnections />
-                  </div>
-                ) : (
-                  <div>Listener Connected.</div>
-                )
-              ) : null}
-            </div>
-          </div>
-        </>
-      ) : (
+    <>
+      <Header />
+      <div className="flex h-screen w-full items-center justify-center">
         <div className="block">
-          <h1>The server is not connected.</h1>
-          {!isPeerConnected && <h1>The Peer is not connected.</h1>}
+          <div>
+            {isSharing ? (
+              isLoading ? (
+                <div>
+                  <WaitingConnections />
+                </div>
+              ) : (
+                <div className="my-6 flex w-full justify-center">
+                  <StreamSelector room={room} streamId={streamId} />
+                </div>
+              )
+            ) : null}
+          </div>
+          {isServerConnected ? (
+            <>
+              <div className="block">
+                {!isIdConnected ? (
+                  <IdContainer
+                    streamId={streamId}
+                    generateID={generateID}
+                    streamerUsername={streamerUsername}
+                    updateStreamerUsername={(streamerUsername: string) =>
+                      updateStreamerUsername(streamerUsername)
+                    }
+                    handleConnect={handleConnect}
+                    cancelConnect={cancelConnect}
+                    isConnectButtonClicked={connectButtonClicked}
+                    isLoading={isLoading}
+                  />
+                ) : (
+                  <ScreenSharingContainer
+                    videoRef={videoRef}
+                    closeStream={closeStream}
+                    updateStream={(stream: MediaStream | null) =>
+                      updateStream(stream)
+                    }
+                  />
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="block">
+              <h1>The server is not connected.</h1>
+              {!isPeerConnected && <h1>The Peer is not connected.</h1>}
+            </div>
+          )}
         </div>
-      )}
-    </div>
+      </div>
+    </>
   );
 };
 
