@@ -40,14 +40,11 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
                 connections.push({ streamId: data.streamId });
                 room[data.streamId] = { streamerUsername: data.streamerUsername, listenerUsernames: [] };
                 currentStreamId = data.streamId;
-                console.log('teste data: ', data)
                 console.log(`Streamer ${JSON.stringify(data.streamerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
             });
 
             socket.on("listener-ready", async (data) => {
                 console.log(`Listener ${JSON.stringify(data.listenerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
-                console.log('room test: ', room)
-
 
                 listenerId = data.listenerId;
                 console.log('ListenerId: ', listenerId);

@@ -44,7 +44,6 @@ const Streamer = () => {
       room[streamId]?.listenerUsernames?.length
     );
     if (room[streamId]?.listenerUsernames?.length > 1) {
-      console.log("yup, peers: ", peers, peers);
       updateStream(stream);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -78,13 +77,11 @@ const Streamer = () => {
         setIsSharing(true);
         setStream(stream);
       }
-      console.log("check stream", stream);
-
       const users = room[streamId].peerIds;
-      console.log("testing users: ", users);
 
       if (users) {
         const userId = users[users.length - 1];
+        
         console.log("Sending signal to the user", userId);
         const peer = StreamerHelpers.createNewPeer({
           streamId,
@@ -105,8 +102,6 @@ const Streamer = () => {
           setPeers((prevPeers) => prevPeers.filter((p) => p !== peer));
         });
 
-        console.log("PEERS: ", peers);
-        console.log("PEERS REF: ", peersRef);
         setPeers(peers);
       }
     }

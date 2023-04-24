@@ -136,10 +136,13 @@ class StreamerHelpers {
             console.log("Error connecting peer: ", err);
         });
 
-        console.log('testing the current peer id: ', this.currentPeerId)
+        newPeer.on("iceConnectionStateChange", (state) => {
+            console.log("Peer ice connection state changed: ", state);
+        });
 
         return newPeer;
     };
+
 
 }
 

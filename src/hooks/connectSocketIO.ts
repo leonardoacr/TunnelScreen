@@ -16,7 +16,6 @@ const useConnectSocketIO = (uri: string): Socket | undefined => {
 
         newSocket.on('status', (data: any) => {
             const dataTransmitted = parseInt(data.signal);
-            console.log('ta chegando algo? ', dataTransmitted);
         });
 
         setSocket(newSocket);
