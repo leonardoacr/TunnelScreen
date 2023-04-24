@@ -37,6 +37,17 @@ class ListenerHelpers {
             socket.on("id-connection-stablished", (data: any) => {
                 if (data.listenerId === listenerId) {
                     console.log("ID connection established", data);
+                    localStorage.setItem("streamId", streamId);
+                    const receivedRoom = data.currentRoom;
+                    const newRoom: Room = {
+                        [streamId]: {
+                            streamerUsername: receivedRoom.streamerUsername,
+                            listenerUsernames: receivedRoom.listenerUsernames,
+                            peerIds: receivedRoom.peerIds,
+                        },
+                    };
+
+                    setRoom(newRoom)
                     setIsLoading(false);
                     setIsIdConnected(true);
                     // data = data.currentRoom;
@@ -153,20 +164,17 @@ class ListenerHelpers {
         socket?.on('all-users', data => {
             console.log('quem tem aqui data', data)
             console.log('stream id: ', streamId)
-            console.log('quem tem aqui ', data.streamId)
+            console.log('quem tem aqui ', data[streamId])
 
-            // console.log('quem tem aqui JSON ', JSON.parse(data)[streamId])
-
-            // data = JSON.parse(data)
             if (data !== undefined) {
-                const { streamerUsername } = data[streamId];
+                const { streamerUsername, listenerUsernames } = data[streamId];
                 setRoom((prevRoom) => {
                     const newRoom = { ...prevRoom };
-                    const listenerUsernames = newRoom[streamId]?.listenerUsernames || [];
+                    // const listenerUsernames = newRoom[streamId]?.listenerUsernames || [];
                     // if (!listenerUsernames.includes(data.listenerUsername)) {
                     newRoom[streamId] = {
                         streamerUsername: streamerUsername,
-                        listenerUsernames: [...listenerUsernames, data.listenerUsername],
+                        listenerUsernames: [...listenerUsernames],
                     };
                     // }
 

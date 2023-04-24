@@ -28,14 +28,25 @@ const Listener = () => {
   const peerRef = useRef<Peer.Instance | null>(null);
 
   useEffect(() => {
-    if (streamId) {
+    console.log("Get all users...");
+    if (!streamId) {
+      const streamId = localStorage.getItem("streamId");
+      console.log("saving streamId and typeof", streamId, typeof streamId);
+      if (typeof streamId === "string") {
+        setStreamId(streamId);
+      }
+    }
+
+    if (streamId !== "") {
       ListenerHelpers.getAllUsers(socket, streamId, setRoom);
     }
+
     console.log("check room ", room);
     console.log("check streamId ", streamId);
-  }, [room, socket, setRoom, streamId]);
+  }, [room, socket, setRoom, streamId, isIdConnected]);
 
   const getStreamId = (streamId: string) => {
+    console.log("Setting stream ID", streamId);
     setStreamId(streamId);
   };
 

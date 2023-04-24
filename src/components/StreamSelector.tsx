@@ -28,7 +28,7 @@ const StreamSelector = ({ room, streamId }: StreamSelectorProps) => {
       {showStream && (
         <>
           <div className="fixed left-0 top-0 z-50 h-full w-full bg-gray-900 bg-opacity-70"></div>
-          <div className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-indigo-700 bg-sky-950/90 shadow-lg">
+          <div className="fixed left-1/2 top-1/2 z-50 -translate-x-1/2 -translate-y-1/2 transform rounded-md border border-indigo-950 bg-neutral-800/90 shadow-lg">
             <div className="mr-2 mt-2 flex justify-end">
               <X
                 className="cursor-pointer text-indigo-500"

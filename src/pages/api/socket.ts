@@ -43,16 +43,12 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
             socket.on("listener-ready", async (data) => {
                 console.log(`Listener ${JSON.stringify(data.listenerUsername)} for stream ${JSON.stringify(data.streamId)} is ready`);
                 console.log('room test: ', room)
-                if (room[data.streamId].listenerUsernames.length === 0) {
-                    room[data.streamId].listenerUsernames.push(data.listenerUsername);
-                } else {
-                    room[data.streamId].listenerUsernames[0] = data.listenerUsername;
-                }
+
 
                 listenerId = data.listenerId;
                 console.log('ListenerId: ', listenerId);
 
-                console.log('Checking room: ', room);
+
                 await broadcastIdConnectionStablished(data, socket)
             });
 
@@ -89,11 +85,20 @@ async function broadcastIdConnectionStablished(data: any, socket: any) {
         return;
     }
 
+    if (room[data.streamId].listenerUsernames.length === 0) {
+        room[data.streamId].listenerUsernames[0] = data.listenerUsername;
+    } else {
+        room[data.streamId].listenerUsernames.push(data.listenerUsername);
+
+    }
+    console.log('Checking room: ', room);
+
     const currentRoom = room[data.streamId];
     data = { ...data, currentRoom }
     console.log(`Streamer found for stream ID ${JSON.stringify(data)}`);
     socket.broadcast.emit('id-connection-stablished', data);
     socket.emit('id-connection-stablished', data);
+    console.log('Sending room: ', room)
     socket.broadcast.emit('all-users', room);
 
 }

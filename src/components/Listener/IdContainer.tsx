@@ -25,6 +25,7 @@ const IdContainer: FC<IdContainerProps> = ({
   const [streamId, setStreamId] = useState<string>("");
 
   const updateStreamId = (value: string) => {
+    console.log("Updating stream ID", streamId);
     setStreamId(value);
     getStreamId(value);
   };
