@@ -3,9 +3,10 @@
 <div align="center">
   <a href="#usage">Usage</a> •
   <a href="#technologies">Technologies</a> •
-  <a href="#contributing">Contributing</a> •
   <a href="#running_backend">Running the Backend</a> •
-  <a href="#running_frontend">Running the Frontend</a>
+  <a href="#running_frontend">Running the Frontend</a> •
+  <a href="#running_frontend">To-Do List</a> •
+  <a href="#contributing">Contributing</a>
 </div>
 
 ## :camera: Overview
