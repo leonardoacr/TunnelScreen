@@ -14,7 +14,9 @@ const Header = () => {
 
   return (
     <>
-      <div className={`flex h-16 items-center justify-center bg-indigo-950 `}>
+      <div
+        className={`flex h-16 items-center justify-center border-b border-gray-800 bg-neutral-900`}
+      >
         <div className="w-full text-center">
           <button>
             <Link href="/">
@@ -37,7 +39,13 @@ const Header = () => {
           <Link key={route.path} href={route.path}>
             <span
               className={`mx-2 cursor-pointer font-bold ${
-                router.pathname === route.path ? "text-green-600" : ""
+                router.pathname === route.path
+                  ? route.name === "Home"
+                    ? "text-green-700"
+                    : route.name === "Streamer"
+                    ? "text-sky-500"
+                    : "text-purple-700"
+                  : ""
               }`}
             >
               {route.name}

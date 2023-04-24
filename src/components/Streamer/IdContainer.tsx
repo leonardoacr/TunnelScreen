@@ -54,7 +54,7 @@ const IdContainer: FC<iDContainerProps> = ({
                 <Copy />
               </button>
             </div>
-            <div className="p-2 text-purple-700">
+            <div className="p-2 text-sky-700">
               {copyResult?.state === "success" && "Copied successfully!"}
               {copyResult?.state === "error" && `Error: ${copyResult.message}`}
             </div>
