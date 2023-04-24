@@ -1,7 +1,6 @@
 import React, { FunctionComponent } from "react";
 import UsernameInput from "../UsernameInput";
 import RedButton from "../Buttons/RedButton";
-import BlueButton from "../Buttons/BlueButton";
 import PurpleButton from "../Buttons/PurpleButton";
 
 type ConnectStreamerComponentProps = {

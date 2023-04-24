@@ -60,11 +60,13 @@ const SocketHandler = (_: NextApiRequest, res: NextApiResponseWithSocket) => {
                 // console.log("Offer from the streamer (ID, OFFER)", data.streamId, ' ', data.signalData);
                 data = { ...data, listenerId };
                 socket.broadcast.emit('streamer-offer', data);
+                socket.emit('streamer-offer', data);
             });
 
             socket.on('listener-signal', (data) => {
                 // console.log("Answer from the listener (ID, OFFER)", data.streamId, ' ', data.signalData);
                 socket.broadcast.emit('listener-answer', data);
+                socket.emit('listener-answer', data);
             });
 
             socket.on('disconnect', () => {

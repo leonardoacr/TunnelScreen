@@ -116,7 +116,6 @@ class StreamerHelpers {
         });
 
         socket.on("listener-answer", (data: any) => {
-            console.log('quem ta ai? ', data.listenerUsername, data.listenerId)
             console.log('ID matches? ', userId, data.listenerId)
             if (data.streamId === streamId && userId === data.listenerId) {
                 const answer = data.signalData;

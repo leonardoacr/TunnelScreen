@@ -1,8 +1,6 @@
 import { Socket } from "socket.io-client";
 import { getRandomUsername } from "./usernameGenerator";
 import Peer from "simple-peer";
-import { socketInitializer } from "./socketIO";
-import { createSemanticDiagnosticsBuilderProgram } from "typescript";
 import { Room } from "@/pages/api/ISocket";
 
 class ListenerHelpers {
@@ -50,22 +48,6 @@ class ListenerHelpers {
                     setRoom(newRoom)
                     setIsLoading(false);
                     setIsIdConnected(true);
-                    // data = data.currentRoom;
-                    // setRoom((prevRoom) => {
-                    //     const newRoom = { ...prevRoom };
-                    //     const listenerUsernames = newRoom[streamId]?.listenerUsernames || [];
-                    //     const peerIds = newRoom[streamId]?.peerIds || [];
-
-                    //     if (!listenerUsernames.includes(listenerUsername)) {
-                    //         newRoom[streamId] = {
-                    //             streamerUsername: data.streamerUsername,
-                    //             listenerUsernames: [...listenerUsernames, data.listenerUsername],
-                    //             peerIds: [...peerIds, data.listenerId],
-                    //         };
-                    //     }
-
-                    //     return newRoom;
-                    // });
                 }
             });
         }
@@ -110,7 +92,6 @@ class ListenerHelpers {
     }): Peer.Instance => {
         const peer = new Peer({
             initiator: false,
-            // trickle: false,
         });
         peerRef.current = peer;
 
@@ -162,21 +143,14 @@ class ListenerHelpers {
         setRoom: React.Dispatch<React.SetStateAction<Room>>
     ) => {
         socket?.on('all-users', data => {
-            console.log('quem tem aqui data', data)
-            console.log('stream id: ', streamId)
-            console.log('quem tem aqui ', data[streamId])
-
             if (data !== undefined) {
                 const { streamerUsername, listenerUsernames } = data[streamId];
                 setRoom((prevRoom) => {
                     const newRoom = { ...prevRoom };
-                    // const listenerUsernames = newRoom[streamId]?.listenerUsernames || [];
-                    // if (!listenerUsernames.includes(data.listenerUsername)) {
                     newRoom[streamId] = {
                         streamerUsername: streamerUsername,
                         listenerUsernames: [...listenerUsernames],
                     };
-                    // }
 
                     return newRoom;
                 });

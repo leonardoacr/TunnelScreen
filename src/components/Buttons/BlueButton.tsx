@@ -14,7 +14,6 @@ const Button = ({ text, onClick }: Props) => {
     `font-semibold ` +
     `rounded ` +
     `shadow `;
-  // (textColor ? `${textColor}` : "");
 
   return (
     <button className={classes} onClick={onClick}>

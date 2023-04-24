@@ -1,5 +1,5 @@
 import React, { FC, useState } from "react";
-import { ClipboardPaste, Wifi } from "lucide-react";
+import { ClipboardPaste } from "lucide-react";
 import ConnectComponent from "./ConnectListenerComponent";
 import { WaitingConnections } from "../WaitingConnections";
 
