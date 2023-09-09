@@ -24,23 +24,9 @@ jobs:
           SSH_SERVER_PORT: ${{ secrets.SSH_SERVER_PORT }}
           SSH_SERVER: ${{ secrets.SSH_SERVER }}
 
-      - name: Clone Repository
+      - name: SSH into Server and Run Commands
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_SERVER_PORT $SSH_SERVER "git clone https://github.com/leonardoacr/TunnelScreen.git"
-        env:
-          SSH_SERVER_PORT: ${{ secrets.SSH_SERVER_PORT }}
-          SSH_SERVER: ${{ secrets.SSH_SERVER }}
-
-      - name: Install Dependencies
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_SERVER_PORT $SSH_SERVER "cd TunnelScreen && npm install"
-        env:
-          SSH_SERVER_PORT: ${{ secrets.SSH_SERVER_PORT }}
-          SSH_SERVER: ${{ secrets.SSH_SERVER }}
-
-      - name: Run Application
-        run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_SERVER_PORT $SSH_SERVER "cd TunnelScreen && npm run dev"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_SERVER_PORT $SSH_SERVER "cd TunnelScreen && git pull && npm install && npm run dev"
         env:
           SSH_SERVER_PORT: ${{ secrets.SSH_SERVER_PORT }}
           SSH_SERVER: ${{ secrets.SSH_SERVER }}
