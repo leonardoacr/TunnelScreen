@@ -18,7 +18,7 @@ jobs:
           mkdir -p ~/.ssh
           echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -p $SSH_SERVER_PORT -H $(echo ${{ secrets.SSH_SERVER }} | cut -d@ -f2) >> ~/.ssh/known_hosts
+          ssh-keyscan -p $SSH_SERVER_PORT $(echo ${{ secrets.SSH_SERVER }} | cut -d@ -f2) >> ~/.ssh/known_hosts
         env:
           SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
           SSH_SERVER_PORT: ${{ secrets.SSH_SERVER_PORT }}
