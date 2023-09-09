@@ -26,7 +26,7 @@ jobs:
 
       - name: SSH into Server and Run Commands
         run: |
-          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_SERVER_PORT $SSH_SERVER "cd TunnelScreen && git pull && npm install && npm run dev"
+          ssh -o StrictHostKeyChecking=no -i ~/.ssh/id_ed25519 -p $SSH_SERVER_PORT $SSH_SERVER "cd TunnelScreen && sudo git pull && sudo npm install && sudo npm run dev"
         env:
           SSH_SERVER_PORT: ${{ secrets.SSH_SERVER_PORT }}
           SSH_SERVER: ${{ secrets.SSH_SERVER }}
