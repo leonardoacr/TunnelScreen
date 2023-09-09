@@ -1,0 +1,36 @@
+name: Deploy to Ubuntu Server
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+
+      - name: Setup SSH Agent
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H your_server_ip >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_SERVER: ${{ secrets.SSH_SERVER }}
+
+      - name: SSH to Server and Run Commands
+        run: |
+          ssh $SSH_SERVER \
+          'git clone https://github.com/leonardoacr/TunnelScreen.git && \
+          cd TunnelScreen && \
+          npm install && \
+          npm run dev'
+          
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_SERVER: ${{ secrets.SSH_SERVER }}
