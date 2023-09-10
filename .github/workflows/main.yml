@@ -1,0 +1,32 @@
+name: SSH to Server and Run Commands
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Set up SSH key
+        run: |
+          mkdir -p ~/.ssh
+          echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -p $SSH_SERVER_PORT $(echo $SSH_SERVER | cut -d@ -f2) >> ~/.ssh/known_hosts
+        env:
+          SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+          SSH_SERVER_PORT: ${{ secrets.SSH_SERVER_PORT }}
+          SSH_SERVER: ${{ secrets.SSH_SERVER }}
+
+      - name: SSH into Server and Run Commands
+        run: |
+          ssh -p $SSH_SERVER_PORT $SSH_SERVER "cd TunnelScreen && git pull &&  npm install && npm run dev"
+        env:
+          SSH_SERVER_PORT: ${{ secrets.SSH_SERVER_PORT }}
+          SSH_SERVER: ${{ secrets.SSH_SERVER }}
